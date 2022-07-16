@@ -4,7 +4,7 @@ from time import sleep
 from typing import Any, Generator, Optional, Union
 from pycloudmusic import RECONNECTION, _id_format
 from pycloudmusic.ahttp import CannotConnectApi, get_session
-from pycloudmusic.metaclass import Api
+from pycloudmusic.baseclass import Api
 from pycloudmusic.object.music163 import *
 
 
@@ -64,6 +64,9 @@ class Music163Api(Api):
             "n": 100000
         })
 
+        if data["code"] != 200:
+            return data
+
         return PlayList(self._headers, data['playlist'])
 
     async def artist(self, id_: Union[int, str]) -> Union[Artist, dict[str, Any]]:
@@ -86,7 +89,7 @@ class Music163Api(Api):
         data = await self._post("api/v1/album/%s" % id_)
 
         if data["code"] != 200:
-            return data["code"]
+            return data
 
         return Album(self._headers, data)
 
@@ -99,7 +102,7 @@ class Music163Api(Api):
         })
 
         if data["code"] != 200:
-            return data["code"]
+            return data
 
         return Mv(self._headers, data)
 
@@ -112,7 +115,7 @@ class Music163Api(Api):
         })
 
         if data["code"] != 200:
-            return data["code"]
+            return data
 
         return Dj(self._headers, data)
 

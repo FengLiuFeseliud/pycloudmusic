@@ -16,11 +16,17 @@ class DataObject(Api, metaclass=ABCMeta):
     
     @abstractmethod
     async def subscribe(self, in_: bool = True) -> dict[str, Any]:
-        ...
+        """
+        对像 收藏/取消收藏
+        """
+        pass
 
     @abstractmethod
     async def similar(self) -> Any:
-        ...
+        """
+        该对象的相似
+        """
+        pass
 
 
 class ListObject(metaclass=ABCMeta):
@@ -63,39 +69,39 @@ class CommentObject(Api):
         """
         该对象的评论
         """
-        ...
+        pass
 
     @abstractmethod
     async def comment_floor(self, comment_id: Union[str, int], page: int=0, limit: int=20) -> dict[str, Any]:
         """
         楼层评论
         """
-        ...
+        pass
 
     @abstractmethod
     async def comment_like(self, comment_id: Union[str, int], in_: bool) -> dict[str, Any]:
         """
         评论点赞
         """
-        ...
+        pass
 
     @abstractmethod
     async def comment_add(self, content: str) -> dict[str, Any]:
         """
         发送评论
         """
-        ...
+        pass
 
     @abstractmethod
     async def comment_delete(self, comment_id: Union[str, int]) -> dict[str, Any]:
         """
         删除评论
         """
-        ...
+        pass
 
     @abstractmethod
     async def comment_reply(self, comment_id: Union[str, int], content: str) -> dict[str, Any]:
         """
         回复评论
         """
-        ...
+        pass

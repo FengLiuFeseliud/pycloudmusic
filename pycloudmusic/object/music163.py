@@ -1,6 +1,6 @@
 import time
 from typing import Generator, Optional, Union, Any
-from pycloudmusic.metaclass import *
+from pycloudmusic.baseclass import *
 
 
 # 数据类型
@@ -69,6 +69,8 @@ class _Music(DataObject, Music163Comment):
 
     def __init__(self, headers: Optional[dict[str, str]], music_data: dict[str, Any]) -> None:
         super().__init__(headers, music_data)
+        self.quality: dict = {}
+        self.mv_id = 0
     
     async def subscribe(self, in_: bool = True) -> dict[str, Any]:
         raise TypeError("无法直接收藏 该对象不支持收藏")
@@ -79,6 +81,113 @@ class _Music(DataObject, Music163Comment):
             "limit": 50, 
             "offset": 0
         })
+    
+    async def similar_playlist(self, page: int=0, limit: int=50) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
+        """
+        该music对象的相似歌单
+        """
+        data = await self._post("/api/discovery/simiPlaylist", {
+            "songid": self.id, 
+            "limit": limit, 
+            "offset": limit * page,
+        })
+
+        if data["code"] != 200:
+            return data
+            
+        return (PlayList(self._headers, playlist_data) for playlist_data in data['playlists'])
+
+    async def similar_user(self, page: int=0, limit: int=50) -> Union[Generator["User", None, None], dict[str, Any]]:
+        """
+        最近5个听了这music对象的用户
+        """
+        data = await self._post("/api/discovery/simiUser", {
+            "songid": self.id, 
+            "limit": limit, 
+            "offset": limit * page,
+        })
+
+        if data["code"] != 200:
+            return data
+            
+        return (User(self._headers, user_data) for user_data in data['userprofiles'])
+
+    async def like(self, like: bool=True):
+        """
+        红心该music对象与取消红心
+        """
+        return await self._post("/api/radio/like", {
+            "alg": 'itembased', 
+            "trackId": self.id, 
+            "like": like, 
+            "time": '3'
+        })
+
+    async def lyric(self):
+        """
+        该music对象的歌词
+        """
+        return await self._post("/api/song/lyric", {
+            "id": self.id, 
+            "lv": -1, 
+            "kv": -1, 
+            "tv": -1,
+        })
+
+    async def _play_url(self, quality=None):
+        """
+        获取播放该 music 对象指定的歌曲文件 url
+        """
+        return await self._post_url("https://interface3.music.163.com/api/song/enhance/player/url", {
+            "ids": f'[{self.id}]',
+            "br": self.quality[quality]['br'] if quality is not None else 999000
+        })
+
+    async def _download_url(self, quality=None):
+        """
+        下载该 music 对象指定的歌曲
+        错误码 -105 需要会员
+        """
+        return await self._post("/api/song/enhance/download/url", {
+            "id": self.id,
+            "br": self.quality[quality]['br'] if quality is not None else 999000
+        })
+
+    async def play(self, quality=None, download_path: str=None) -> Union[str, dict[str, Any]]:
+        """
+        获取播放该 music 对象指定的歌曲文件
+        """
+        data = await self._play_url(quality)
+        if data["code"] != 200:
+            return data
+
+        return await self._download(data["data"][0]["url"], f"{self.id}.mp3", download_path)
+    
+    async def download(self, quality=None, download_path: str=None) -> Union[str, dict[str, Any]]:
+        """
+        获取下载该 music 对象指定的歌曲文件
+        """
+        data = await self._download_url(quality)
+        if data["code"] != 200 or data["data"]["code"] == -105:
+            return data
+
+        return await self._download(data["data"]["url"], f"{self.id}.mp3", download_path)
+
+    async def album(self):
+        """
+        实例化该对像专辑album对像 并返回album对像
+        """
+        from pycloudmusic.music163 import Music163Api
+        
+        return await Music163Api(headers=self._headers).album(self.album_data["id"])
+
+    async def mv(self):
+        """
+        获取该对像mv实例化mv对像 并返回mv对像
+        """
+        from pycloudmusic.music163 import Music163Api
+
+        return await Music163Api(headers=self._headers).mv(self.mv_id)
 
 
 class Music(_Music):
@@ -243,6 +352,9 @@ class Album(DataListObject, Music163Comment):
         self.cover = album_data['picUrl']
         self.music_list = album_data["songs"]
 
+    def __next__(self) -> Music:
+        return Music(self._headers, super().__next__())
+
     async def subscribe(self, in_: bool = True) -> dict[str, Any]:
         return await self._post("/api/album%s" % "/sub" if in_ else "/unsub", {
             "id": self.id
@@ -250,9 +362,6 @@ class Album(DataListObject, Music163Comment):
     
     async def similar(self) -> Any:
         raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
-
-    def __next__(self) -> Music:
-        return Music(self._headers, super().__next__())
 
 
 class Mv(DataObject, Music163Comment):
@@ -445,6 +554,9 @@ class Dj(DataListObject):
         self.music_count = dj_data["programCount"]
         # 电台创建时间
         self.create_time = dj_data["createTime"]
+
+    def __next__(self) -> DjMusic:
+        return DjMusic(self._headers, super().__next__())
     
     async def read(self, page=0, limit=30, asc=False):
         """
@@ -467,9 +579,6 @@ class Dj(DataListObject):
 
     async def similar(self) -> Any:
         raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
-
-    def __next__(self) -> DjMusic:
-        return DjMusic(self._headers, super().__next__())
 
 
 class FmMusic(_Music):
@@ -501,6 +610,9 @@ class Fm(Api, ListObject):
     def __init__(self, headers: Optional[dict[str, str]] = None) -> None:
         super().__init__(headers)
 
+    def __next__(self) -> FmMusic:
+        return FmMusic(self._headers, super().__next__())
+
     async def read(self):
         """
         获取fm歌曲
@@ -520,9 +632,6 @@ class Fm(Api, ListObject):
         return await self._post("/api/radio/trash/add?alg=RT&songId=%s&time=%s" % (id_, int(time.time())), {
             "songId": id_
         })
-
-    def __next__(self) -> FmMusic:
-        return FmMusic(self._headers, super().__next__())
 
 
 class My(User):
