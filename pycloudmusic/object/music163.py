@@ -1,3 +1,4 @@
+import json
 import time
 from typing import Generator, NoReturn, Optional, Union, Any
 from pycloudmusic.baseclass import *
@@ -13,6 +14,22 @@ DATA_TYPE = [
     "R_VI_62_",  # 视频
     "A_EV_2_",  # 动态
 ]
+
+
+# 动态类型
+EVENT_TYPE = {
+    18: '分享单曲',
+    19: '分享专辑',
+    17: '分享电台节目',
+    28: '分享电台节目',
+    22: '转发',
+    39: '发布视频',
+    35: '分享歌单',
+    13: '分享歌单',
+    24: '分享专栏文章',
+    41: '分享视频',
+    21: '分享视频'
+}
 
 
 class Music163Comment(CommentObject):
@@ -114,7 +131,7 @@ class _Music(DataObject, Music163Comment):
         limit: int = 50
     ) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
         """
-        该music对象的相似歌单
+        该 music 对象的相似歌单
         """
         data = await self._post("/api/discovery/simiPlaylist", {
             "songid": self.id, 
@@ -132,7 +149,7 @@ class _Music(DataObject, Music163Comment):
         limit: int = 50
     ) -> Union[Generator["User", None, None], dict[str, Any]]:
         """
-        最近5个听了这music对象的用户
+        最近5个听了这 music 对象的用户
         """
         data = await self._post("/api/discovery/simiUser", {
             "songid": self.id, 
@@ -184,8 +201,7 @@ class _Music(DataObject, Music163Comment):
         quality = None
     ) -> dict[str, Any]:
         """
-        下载该 music 对象指定的歌曲
-        错误码 -105 需要会员
+        下载该 music 对象指定的歌曲, 错误码 -105 需要会员
         """
         return await self._post("/api/song/enhance/download/url", {
             "id": self.id,
@@ -220,7 +236,7 @@ class _Music(DataObject, Music163Comment):
 
     async def album(self) -> Union["Album", dict[str, Any]]:
         """
-        实例化该对像专辑album对像 并返回album对像
+        实例化该对像专辑 album 对像并返回 album 对像
         """
         from pycloudmusic.music163 import Music163Api
         
@@ -228,7 +244,7 @@ class _Music(DataObject, Music163Comment):
 
     async def mv(self) -> Union["Mv", dict[str, Any]]:
         """
-        获取该对像mv实例化mv对像 并返回mv对像
+        获取该对像 mv 实例化 mv 对像并返回 mv 对像
         """
         from pycloudmusic.music163 import Music163Api
 
@@ -538,7 +554,7 @@ class _Mv(DataObject, Music163Comment):
         quality: Union[str, int] = 1080
     ) -> dict[str, Any]:
         """
-        获取播放该mv对象指定的视频 url
+        获取播放该 mv 对象指定的视频 url
         """
         return await self._post("/api/song/enhance/play/mv/url", {
             "id": self.id, "r": quality
@@ -549,7 +565,7 @@ class _Mv(DataObject, Music163Comment):
         quality: Union[str, int] = 1080
     ) -> Union[str, dict[str, Any]]:
         """
-        获取播放该mv对象指定的视频文件
+        获取播放该 mv 对象指定的视频文件
         """
         data = await self._play_url(quality)
 
@@ -970,7 +986,7 @@ class Message(Api):
         """
         获取评论
         """
-        return await self._post(f"/api/v1/user/comments{self.id}", {
+        return await self._post(f"/api/v1/user/comments/{self.id}", {
             "beforeTime": before_time, 
             "limit": limit, 
             "total": 'true', 
@@ -1063,7 +1079,7 @@ class Message(Api):
         id_: Union[int, str]
     ) -> dict[str, Any]:
         """
-        发送私信 带歌曲 id_:歌曲id (其他参数查看send())
+        发送私信 带歌曲 id_:歌曲 id
         """
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
@@ -1078,7 +1094,7 @@ class Message(Api):
         id_: Union[int, str]
     ) -> dict[str, Any]:
         """
-        发送私信 带专辑 id_:专辑id (其他参数查看send())
+        发送私信 带专辑 id_:专辑 id
         """
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
@@ -1093,7 +1109,7 @@ class Message(Api):
         id_: Union[int, str]
     ) -> dict[str, Any]:
         """
-        发送私信 带歌单 不能发送重复的歌单 id_:歌单id (其他参数查看send())
+        发送私信 带歌单 不能发送重复的歌单 id_:歌单 id
         """
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
@@ -1106,10 +1122,47 @@ class Message(Api):
 class EventItem(Music163Comment):
 
     def __init__(self, 
-        headers: Optional[dict[str, str]],
+        headers: dict[str, str],
         event_data: dict[str, Any]
     ) -> None:
         super().__init__(headers)
+        self.data_type = DATA_TYPE[6]
+        # 动态发布用户
+        self.user = event_data["user"]
+        self.user_str = self.user["nickname"]
+        # 动态内容
+        self.msg = json.loads(event_data["json"])
+        # 动态图片
+        self.pics = event_data["pics"]
+        # 动态话题
+        self.act_name = event_data["actName"]
+        # 动态类型
+        self.type = event_data["type"]
+        self.type_str = EVENT_TYPE[self.type]
+        # 动态 id
+        self.id = event_data['id']
+        # 动态 id
+        self.ev_id = "%s_%s" % (self.id, self.user["userId"])
+        # 动态分享数
+        self.share_count = event_data["info"]["shareCount"]
+        # 动态评论数
+        self.comment_count = event_data["info"]["commentCount"]
+        # 动态点赞数
+        self.like_count = event_data["info"]["likedCount"]
+        # 动态时间
+        self.event_time = event_data["eventTime"]
+
+    async def forward(self, 
+        msg: str
+    ) -> dict[str, Any]:
+        """
+        指定动态转发到 cookie 用户
+        """
+        return await self._post("/api/event/forward", {
+            "forwards": msg, 
+            "id": self.id, 
+            "eventUserId": self.user["userId"]
+        })
 
 
 class Event(Api, ListObject):
@@ -1121,6 +1174,132 @@ class Event(Api, ListObject):
 
     def __next__(self) -> EventItem:
         return EventItem(self._headers, super().__next__())
+
+    async def read(self, 
+        last_time: Union[str, int] = -1, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取下一页动态
+        """
+        data = await self._post("/api/v1/event/get", {
+            "pagesize": limit, 
+            "lasttime": last_time
+        })
+
+        if data["code"] != 200:
+            return data
+
+        self.music_list = data['event']
+        return data
+
+    async def read_user(self, 
+        user_id: Union[str, int], 
+        last_time: Union[str, int] = -1, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取指定用户动态
+        """
+        data = await self._post(f"/api/event/get{user_id}", {
+            "limit": limit, 
+            "time": last_time, 
+            "getcounts": "true", 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        self.music_list = data['event']
+        return data
+
+    async def del_(self, 
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        删除 cookie 用户动态
+        """
+        return await self._post("/api/event/delete", {
+            "id": id_
+        })
+
+    async def send(self,
+        msg: str
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": "", 
+            "type": "noresource"
+        })
+
+    async def send_music(self,
+        msg: str,
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态 带歌曲 id_:歌曲 id
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": id_, 
+            "type": "song"
+        })
+
+    async def send_playlist(self,
+        msg: str,
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态 带歌单 id_:歌单 id
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": id_, 
+            "type": "playlist"
+        })
+
+    async def send_mv(self,
+        msg: str,
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态 带 mv id_:mv id
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": id_, 
+            "type": "mv"
+        })
+
+    async def send_dj(self,
+        msg: str,
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态 带电台 id_:电台 id
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": id_, 
+            "type": "djprogram"
+        })
+
+    async def send_dj_music(self,
+        msg: str,
+        id_: Union[str, int]
+    ) -> dict[str, Any]:
+        """
+        使用 cookie 用户发送动态 带电台节目 id_:电台节目 id
+        """
+        return await self._post("/api/share/friends/resource", {
+            "msg": msg, 
+            "id": id_, 
+            "type": "djradio"
+        })
 
 
 class CloudMusic(Api):
@@ -1239,7 +1418,7 @@ class My(User):
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
         """
-        查看cookie用户收藏的歌手
+        查看 cookie 用户收藏的歌手
         """
         data = await self._post("/api/artist/sublist", {
             "limit": limit, 
@@ -1257,7 +1436,7 @@ class My(User):
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
         """
-        查看cookie用户收藏的专辑 (参数参考sublist_artist())
+        查看 cookie 用户收藏的专辑
         """
         data = await self._post("/api/album/sublist", {
             "limit": limit, 
@@ -1275,7 +1454,7 @@ class My(User):
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortDj, None, None]], dict[str, Any]]:
         """
-        查看cookie用户收藏的电台 (参数参考sublist_artist())
+        查看 cookie 用户收藏的电台
         """
         data = await self._post("/api/djradio/get/subed", {
             "limit": limit, 
@@ -1293,7 +1472,7 @@ class My(User):
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortMv, None, None]], dict[str, Any]]:
         """
-        查看cookie用户收藏的MV (参数参考sublist_artist())
+        查看 cookie 用户收藏的 MV
         """
         data = await self._post("/api/cloudvideo/allvideo/sublist", {
             "limit": limit, 
@@ -1311,7 +1490,7 @@ class My(User):
         limit: int = 50
     ) -> dict[str, Any]:
         """
-        查看cookie用户收藏的专题 (参数参考sublist_artist())
+        查看 cookie 用户收藏的专题
         """
         data = await self._post("/api/topic/sublist", {
             "limit": limit, 
