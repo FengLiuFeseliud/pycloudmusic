@@ -17,3 +17,5 @@ def _id_format(id_, dict_str=False):
         format_str = str(id_)
 
     return format_str
+
+from pycloudmusic.music163 import LoginMusic163, Music163Api
