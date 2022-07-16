@@ -1,10 +1,11 @@
 import hashlib
 from http.cookies import SimpleCookie
 from time import sleep
-from typing import Any, Optional, Union
-from pycloudmusic import RECONNECTION
+from typing import Any, Generator, Optional, Union
+from pycloudmusic import RECONNECTION, _id_format
 from pycloudmusic.ahttp import CannotConnectApi, get_session
 from pycloudmusic.metaclass import Api
+from pycloudmusic.object.music163 import *
 
 
 class LoginMusic163(Api):
@@ -133,3 +134,51 @@ class Music163(Api):
         super().__init__(headers)
         if not cookies is None:
             self._headers["Cookie"] = cookies
+
+    async def my(self) -> Union[My, dict[str, Any]]:
+        """
+        获取当前cookie用户信息并实例化my对像\n
+        cookie无效返回200
+        """
+        data = await self._post("/api/w/nuser/account/get")
+        if data["code"] != 200 or data["profile"] is None:
+            return data
+
+        return My(self._headers, data)
+
+    async def music(self, id_: Union[int, str]) -> Union[Music, Generator[Music, None, None], dict[str, Any]]:
+        """
+        获取歌曲并实例化music对像
+        """
+        data = await self._post("/api/v3/song/detail", {
+            "c": _id_format(id_, dict_str=True)
+        })
+        if data["code"] != 200:
+            return data
+        
+        if len(data["songs"]) == 1:
+            return Music(self._headers, data["songs"][0])
+
+        return (Music(self._headers, music_data) for music_data in data["songs"])
+
+    async def user(self, id_: Union[int, str]) -> Union[User, dict[str, Any]]:
+        """
+        获取用户并实例化user对像
+        """
+        data = await self._post(f"/api/v1/user/detail/{id_}")
+
+        if data["code"] != 200:
+            return data
+
+        return User(self._headers, data)
+
+    async def playlist(self, id_: Union[int, str]) -> Union[PlayList, dict[str, Any]]:
+        """
+        获取歌单并实例化playlist对像
+        """
+        data = await self._post("/api/v6/playlist/detail", {
+            "id": id_, 
+            "n": 100000
+        })
+
+        return PlayList(self._headers, data['playlist']) 

@@ -36,7 +36,7 @@ class Http:
     def __init__(self, headers: Optional[dict[str, str]]=None) -> None:
         self._headers = headers if not headers is None else MUSIC_HEADERS
     
-    async def _post(self, url: str, data: dict[str, Any], reconnection_count: int=0) -> dict[str, Any]:
+    async def _post(self, url: str, data: Optional[dict[str, Any]] = None, reconnection_count: int=0) -> dict[str, Any]:
         try:
             session = await get_session()
             async with session.post(f"https://music.163.com{url}", headers=self._headers, data=data) as req:
