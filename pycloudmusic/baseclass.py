@@ -5,7 +5,8 @@ from pycloudmusic.ahttp import Http
 
 class Api(Http, metaclass=ABCMeta):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
@@ -13,14 +14,16 @@ class Api(Http, metaclass=ABCMeta):
 
 class DataObject(Api, metaclass=ABCMeta):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         data: dict[str, Any]
     ) -> None:
         super().__init__(headers)
     
     @abstractmethod
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         """
@@ -58,7 +61,8 @@ class ListObject(metaclass=ABCMeta):
 
 class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         data: dict[str, Any]
     ) -> None:
@@ -71,13 +75,15 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
 class CommentObject(Api):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
 
     @abstractmethod
-    async def comment(self, 
+    async def comment(
+        self, 
         hot: bool = True, 
         page: int = 0, 
         limit: int = 20,
@@ -89,7 +95,8 @@ class CommentObject(Api):
         pass
 
     @abstractmethod
-    async def comment_floor(self, 
+    async def comment_floor(
+        self, 
         comment_id: Union[str, int], 
         page: int = 0,
         limit: int = 20
@@ -100,7 +107,8 @@ class CommentObject(Api):
         pass
 
     @abstractmethod
-    async def comment_like(self, 
+    async def comment_like(
+        self, 
         comment_id: Union[str, int], 
         in_: bool
     ) -> dict[str, Any]:
@@ -110,7 +118,8 @@ class CommentObject(Api):
         pass
 
     @abstractmethod
-    async def comment_add(self, 
+    async def comment_add(
+        self, 
         content: str
     ) -> dict[str, Any]:
         """
@@ -119,7 +128,8 @@ class CommentObject(Api):
         pass
 
     @abstractmethod
-    async def comment_delete(self, 
+    async def comment_delete(
+        self, 
         comment_id: Union[str, int]
     ) -> dict[str, Any]:
         """
@@ -128,7 +138,8 @@ class CommentObject(Api):
         pass
 
     @abstractmethod
-    async def comment_reply(self, 
+    async def comment_reply(
+        self, 
         comment_id: Union[str, int], 
         content: str
     ) -> dict[str, Any]:

@@ -13,7 +13,8 @@ class Music163Api(Api):
     出现-460错误 尝试再cookie加上 "appver=2.7.1.198277; os=pc;"
     """
 
-    def __init__(self, 
+    def __init__(
+        self, 
         cookies: Optional[str] = None, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
@@ -32,7 +33,8 @@ class Music163Api(Api):
 
         return My(self._headers, data)
 
-    async def music(self, 
+    async def music(
+        self, 
         ids: Union[int, str, list[Union[str, int]]]
     ) -> Union[Music, Generator[Music, None, None], dict[str, Any]]:
         """
@@ -49,7 +51,8 @@ class Music163Api(Api):
 
         return (Music(self._headers, music_data) for music_data in data["songs"])
 
-    async def user(self, 
+    async def user(
+        self, 
         id_: Union[int, str]
     ) -> Union[User, dict[str, Any]]:
         """
@@ -62,7 +65,8 @@ class Music163Api(Api):
 
         return User(self._headers, data)
 
-    async def playlist(self, 
+    async def playlist(
+        self, 
         id_: Union[int, str]
     ) -> Union[PlayList, dict[str, Any]]:
         """
@@ -78,7 +82,8 @@ class Music163Api(Api):
 
         return PlayList(self._headers, data['playlist'])
 
-    async def artist(self, 
+    async def artist(
+        self, 
         id_: Union[int, str]
     ) -> Union[Artist, dict[str, Any]]:
         """
@@ -93,7 +98,8 @@ class Music163Api(Api):
 
         return Artist(self._headers, data["data"]['artist'])
 
-    async def album(self, 
+    async def album(
+        self, 
         id_: Union[int, str]
     ) -> Union[Album, dict[str, Any]]:
         """
@@ -106,7 +112,8 @@ class Music163Api(Api):
 
         return Album(self._headers, data)
 
-    async def mv(self, 
+    async def mv(
+        self, 
         id_: Union[int, str]
     ) -> Union[Mv, dict[str, Any]]:
         """
@@ -121,7 +128,8 @@ class Music163Api(Api):
 
         return Mv(self._headers, data["data"])
 
-    async def dj(self, 
+    async def dj(
+        self, 
         id_: Union[int, str]
     ) -> Union[Dj, dict[str, Any]]:
         """
@@ -139,20 +147,23 @@ class Music163Api(Api):
 
 class LoginMusic163(Api):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
         # md5对象
         self.__hl = hashlib.md5()
 
-    def _md5(self, 
+    def _md5(
+        self, 
         str_: str
     ) -> str:
         self.__hl.update(str_.encode(encoding='utf-8'))
         return self.__hl.hexdigest()
     
-    def _SimpleCookieToCookieStr(self, 
+    def _SimpleCookieToCookieStr(
+        self, 
         cookie: SimpleCookie[str]
     ) -> str:
         cookie_str = ""
@@ -162,7 +173,8 @@ class LoginMusic163(Api):
         
         return cookie_str
 
-    async def _login(self, 
+    async def _login(
+        self, 
         url: str, 
         data: dict[str, Any], 
         reconnection_count: int = 0
@@ -179,7 +191,8 @@ class LoginMusic163(Api):
 
             return await self._login(url, data, reconnection_count)
     
-    async def email(self, 
+    async def email(
+        self, 
         email: str, 
         password: str
     ) -> tuple[int, str, Music163Api]:
@@ -195,7 +208,8 @@ class LoginMusic163(Api):
 
         return code, cookies, Music163Api(cookies)
 
-    async def send_captcha(self, 
+    async def send_captcha(
+        self, 
         phone: Union[str, int], 
         country_code: Union[str, int] = "86"
     ) -> dict[str, Any]:
@@ -207,7 +221,8 @@ class LoginMusic163(Api):
             "cellphone": phone
         })
 
-    async def cellphone(self, 
+    async def cellphone(
+        self, 
         phone: Union[str, int], 
         password: Union[str, int], 
         captcha: bool = False, 
@@ -242,7 +257,8 @@ class LoginMusic163(Api):
 
         return data["unikey"], "https://music.163.com/login?codekey=%s" % data["unikey"]
 
-    async def qr_check(self, 
+    async def qr_check(
+        self, 
         qr_key: str
     ) -> tuple[int, str]:
         """
@@ -254,7 +270,8 @@ class LoginMusic163(Api):
             'type': 1
         })
 
-    async def qr(self, 
+    async def qr(
+        self, 
         qr_key: str, 
         time_sleep: int = 3
     ) -> tuple[int, str, Music163Api]:

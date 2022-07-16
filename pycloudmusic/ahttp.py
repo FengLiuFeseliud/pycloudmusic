@@ -33,12 +33,14 @@ class CannotConnectApi(Exception):
 
 class Http:
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         self._headers = headers if not headers is None else MUSIC_HEADERS
 
-    async def _post_url(self, 
+    async def _post_url(
+        self, 
         url: str, 
         data: Optional[dict[str, Any]] = None, 
         reconnection_count: int=0
@@ -54,13 +56,15 @@ class Http:
 
             return await self._post_url(url, data, reconnection_count)
 
-    async def _post(self, 
+    async def _post(
+        self, 
         path: str, 
         data: Optional[dict[str, Any]] = None
     ) -> dict[str, Any]:
         return await self._post_url(f"https://music.163.com{path}", data)
 
-    async def _download(self, 
+    async def _download(
+        self, 
         url: str, 
         file_name: str, 
         file_path: Optional[str] = None, 

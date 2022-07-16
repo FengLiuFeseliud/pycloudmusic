@@ -34,14 +34,16 @@ EVENT_TYPE = {
 
 class Music163Comment(CommentObject):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
         self.data_type: Optional[str] = None
         self.id: Optional[int] = None
 
-    async def comment(self, 
+    async def comment(
+        self, 
         hot: bool = True, 
         page: int = 0, 
         limit: int = 20, 
@@ -55,7 +57,8 @@ class Music163Comment(CommentObject):
             "beforeTime": before_time
         })
     
-    async def comment_floor(self, 
+    async def comment_floor(
+        self, 
         comment_id: Union[str, int], 
         page: int = 0, 
         limit: int = 20
@@ -67,7 +70,8 @@ class Music163Comment(CommentObject):
             "offset": limit * page
         })
 
-    async def comment_like(self, 
+    async def comment_like(
+        self, 
         comment_id: Union[str, int], 
         in_: bool
     ) -> dict[str, Any]:
@@ -76,7 +80,8 @@ class Music163Comment(CommentObject):
             "commentId": comment_id
         })
 
-    async def comment_add(self, 
+    async def comment_add(
+        self, 
         content: str
     ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/add", {
@@ -84,7 +89,8 @@ class Music163Comment(CommentObject):
             "content": content
         })
     
-    async def comment_delete(self, 
+    async def comment_delete(
+        self, 
         comment_id: Union[str, int]
     ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/delete", {
@@ -92,7 +98,8 @@ class Music163Comment(CommentObject):
             "commentId": comment_id
         })
     
-    async def comment_reply(self,
+    async def comment_reply(
+        self,
         comment_id: Union[str, int], 
         content: str
     ) -> dict[str, Any]:
@@ -105,7 +112,8 @@ class Music163Comment(CommentObject):
 
 class _Music(DataObject, Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         music_data: dict[str, Any]
     ) -> None:
@@ -114,7 +122,8 @@ class _Music(DataObject, Music163Comment):
         self.mv_id = 0
         self.album_data: dict[str, Any] = {}
     
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         raise TypeError("无法直接收藏 该对象不支持收藏")
@@ -126,7 +135,8 @@ class _Music(DataObject, Music163Comment):
             "offset": 0
         })
     
-    async def similar_playlist(self, 
+    async def similar_playlist(
+        self, 
         page: int = 0, 
         limit: int = 50
     ) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
@@ -144,7 +154,8 @@ class _Music(DataObject, Music163Comment):
             
         return (PlayList(self._headers, playlist_data) for playlist_data in data['playlists'])
 
-    async def similar_user(self, 
+    async def similar_user(
+        self, 
         page: int = 0, 
         limit: int = 50
     ) -> Union[Generator["User", None, None], dict[str, Any]]:
@@ -162,7 +173,8 @@ class _Music(DataObject, Music163Comment):
             
         return (User(self._headers, user_data) for user_data in data['userprofiles'])
 
-    async def like(self, 
+    async def like(
+        self, 
         like: bool = True
     ) -> dict[str, Any]:
         """
@@ -186,7 +198,8 @@ class _Music(DataObject, Music163Comment):
             "tv": -1,
         })
 
-    async def _play_url(self, 
+    async def _play_url(
+        self, 
         quality = None
     ) -> dict[str, Any]:
         """
@@ -197,7 +210,8 @@ class _Music(DataObject, Music163Comment):
             "br": self.quality[quality]['br'] if quality is not None else 999000
         })
 
-    async def _download_url(self, 
+    async def _download_url(
+        self, 
         quality = None
     ) -> dict[str, Any]:
         """
@@ -208,7 +222,8 @@ class _Music(DataObject, Music163Comment):
             "br": self.quality[quality]['br'] if quality is not None else 999000
         })
 
-    async def play(self, 
+    async def play(
+        self, 
         quality = None, 
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
@@ -221,7 +236,8 @@ class _Music(DataObject, Music163Comment):
 
         return await self._download(data["data"][0]["url"], f"{self.id}.mp3", download_path)
     
-    async def download(self, 
+    async def download(
+        self, 
         quality = None, 
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
@@ -253,7 +269,8 @@ class _Music(DataObject, Music163Comment):
 
 class Music(_Music):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         music_data: dict[str, Any]
     ) -> None:
@@ -288,7 +305,8 @@ class Music(_Music):
 
 class _PlayList(DataListObject, Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         playlist_data: dict[str, Any]
     ) -> None:
@@ -298,7 +316,8 @@ class _PlayList(DataListObject, Music163Comment):
     def __next__(self) -> Music:
         return Music(self._headers, super().__next__())
 
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         return await self._post("/api/playlist%s" % '/subscribe' if in_ else '/unsubscribe', {
@@ -310,7 +329,8 @@ class _PlayList(DataListObject, Music163Comment):
 
 class PlayList(_PlayList):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         playlist_data: dict[str, Any]
     ) -> None:
@@ -343,7 +363,8 @@ class PlayList(_PlayList):
 
 class ShortPlayList(_PlayList):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         playlist_data: dict[str, Any]
     ) -> None:
@@ -371,7 +392,8 @@ class ShortPlayList(_PlayList):
 
 class User(Api):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         user_data: dict[str, Any]
     ) -> None:
@@ -399,7 +421,8 @@ class User(Api):
             self.like_playlist_id = next(data).id
         return self.like_playlist_id
 
-    async def playlist(self, 
+    async def playlist(
+        self, 
         page: int = 0, 
         limit: int = 30
     ) -> Union[Generator[PlayList, None, None], dict[str, Any]]:
@@ -427,7 +450,8 @@ class User(Api):
         like_playlist_id = await self._get_like_playlist_id()
         return await Music163Api(self._headers["cookie"]).playlist(like_playlist_id)
 
-    async def record(self, 
+    async def record(
+        self, 
         type_: bool = True
     ) -> Union[Generator[Music, None, None], dict[str, Any]]:
         """
@@ -452,7 +476,8 @@ class User(Api):
 
 class _Album(DataListObject, Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         album_data: dict[str, Any]
     ) -> None:
@@ -464,7 +489,8 @@ class _Album(DataListObject, Music163Comment):
     def __next__(self) -> Music:
         return Music(self._headers, super().__next__())
 
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         return await self._post("/api/album%s" % "/sub" if in_ else "/unsub", {
@@ -476,7 +502,8 @@ class _Album(DataListObject, Music163Comment):
 
 class Album(_Album):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         album_data: dict[str, Any]
     ) -> None:
@@ -514,7 +541,8 @@ class Album(_Album):
 
 class ShortAlbum(_Album):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         album_data: dict[str, Any]
     ) -> None:
@@ -542,7 +570,8 @@ class ShortAlbum(_Album):
 
 class _Mv(DataObject, Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         mv_data: dict[str, Any]
     ) -> None:
@@ -550,7 +579,8 @@ class _Mv(DataObject, Music163Comment):
         self.data_type = DATA_TYPE[1]
         self.id = 0
 
-    async def _play_url(self, 
+    async def _play_url(
+        self, 
         quality: Union[str, int] = 1080
     ) -> dict[str, Any]:
         """
@@ -560,7 +590,8 @@ class _Mv(DataObject, Music163Comment):
             "id": self.id, "r": quality
         })
 
-    async def play(self, 
+    async def play(
+        self, 
         download_path: Optional[str] = None, 
         quality: Union[str, int] = 1080
     ) -> Union[str, dict[str, Any]]:
@@ -574,7 +605,8 @@ class _Mv(DataObject, Music163Comment):
 
         return await self._download(data["data"]["url"], f"{self.id}.mp4", download_path)
 
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         return await self._post("/api/mv%s" % "/sub" if in_ else "/unsub", {
@@ -590,7 +622,8 @@ class _Mv(DataObject, Music163Comment):
 
 class Mv(_Mv):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         mv_data: dict[str, Any]
     ) -> None:
@@ -625,7 +658,8 @@ class Mv(_Mv):
 
 class ShortMv(_Mv):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         mv_data: dict[str, Any]
     ) -> None:
@@ -643,7 +677,8 @@ class ShortMv(_Mv):
 
 class _Artist(DataObject):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         artist_data: dict[str, Any]
     ) -> None:
@@ -651,7 +686,8 @@ class _Artist(DataObject):
         self.data_type = "artist"
         self.id = 0
 
-    async def song(self, 
+    async def song(
+        self, 
         hot: bool = True, 
         page: int = 0, 
         limit: int = 100
@@ -686,7 +722,8 @@ class _Artist(DataObject):
 
         return (Music(self._headers, music_data) for music_data in data['songs'])
 
-    async def album(self, 
+    async def album(
+        self, 
         page: int = 0,
         limit: int = 30
     ) -> Union[Generator[Album, None, None], dict[str, Any]]:
@@ -702,7 +739,8 @@ class _Artist(DataObject):
 
         return (Album(self._headers, album_data) for album_data in data["hotAlbums"])
     
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         return await self._post("/api/artist%s" % "/sub" if in_ else "/unsub", {
@@ -717,7 +755,8 @@ class _Artist(DataObject):
 
 class Artist(_Artist):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         artist_data: dict[str, Any]
     ) -> None:
@@ -741,7 +780,8 @@ class Artist(_Artist):
 
 class ShortArtist(_Artist):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         artist_data: dict[str, Any]
     ) -> None:
@@ -762,7 +802,8 @@ class ShortArtist(_Artist):
 
 class DjMusic(Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         dj_music_data: dict[str, Any]
     ) -> None:
@@ -788,7 +829,8 @@ class DjMusic(Music163Comment):
 
 class _Dj(DataListObject):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         dj_data: dict[str, Any]
     ) -> None:
@@ -799,7 +841,8 @@ class _Dj(DataListObject):
     def __next__(self) -> DjMusic:
         return DjMusic(self._headers, super().__next__())
     
-    async def read(self, 
+    async def read(
+        self, 
         page: int = 0, 
         limit: int= 30, 
         asc: bool = False
@@ -817,7 +860,8 @@ class _Dj(DataListObject):
         self.music_list = data["programs"]
         return data
     
-    async def subscribe(self, 
+    async def subscribe(
+        self, 
         in_: bool = True
     ) -> dict[str, Any]:
         return await self._post("/api/djradio%s" % "/sub" if in_ else "/unsub", {
@@ -829,7 +873,8 @@ class _Dj(DataListObject):
 
 class Dj(_Dj):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         dj_data: dict[str, Any]
     ) -> None:
@@ -873,7 +918,8 @@ class Dj(_Dj):
 
 class ShortDj(_Dj):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         dj_data: dict[str, Any]
     ) -> None:
@@ -912,7 +958,8 @@ class ShortDj(_Dj):
 
 class FmMusic(_Music):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         music_data: dict[str, Any]
     ) -> None:
@@ -939,7 +986,8 @@ class FmMusic(_Music):
 
 class Fm(Api, ListObject):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
@@ -959,7 +1007,8 @@ class Fm(Api, ListObject):
         self.music_list = data["data"]
         return data
 
-    async def write(self, 
+    async def write(
+        self, 
         id_: Union[int, str]
     ) -> dict[str, Any]:
         """
@@ -972,14 +1021,16 @@ class Fm(Api, ListObject):
 
 class Message(Api):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]],
         user_id: Union[str, int]
     ) -> None:
         super().__init__(headers)
         self.id = user_id
 
-    async def comments(self, 
+    async def comments(
+        self, 
         before_time: int = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
@@ -993,7 +1044,8 @@ class Message(Api):
             "uid": self.id
         })
 
-    async def forwards(self, 
+    async def forwards(
+        self, 
         page: int = 0, 
         limit: int = 30
     ) -> dict[str, Any]:
@@ -1006,7 +1058,8 @@ class Message(Api):
             "total": 'true'
         })
 
-    async def notices(self, 
+    async def notices(
+        self, 
         last_time: int = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
@@ -1024,7 +1077,8 @@ class Message(Api):
         """
         return await self._post("/api/msg/recentcontact/get")
 
-    async def private_history(self, 
+    async def private_history(
+        self, 
         id_: Union[str, int], 
         page: int = 0, 
         limit: int = 30, 
@@ -1039,7 +1093,8 @@ class Message(Api):
             "total": 'true'
         })
 
-    async def private(self, 
+    async def private(
+        self, 
         page: int = 0, 
         limit: int = 30
     ) -> dict[str, Any]:
@@ -1052,7 +1107,8 @@ class Message(Api):
             "total": 'true'
         })
 
-    def __set_to_user_id_str(self, 
+    def __set_to_user_id_str(
+        self, 
         to_user_id: Union[int, str, list[Union[int, str]]]
     ) -> str:
         if type(to_user_id) != list:
@@ -1060,7 +1116,8 @@ class Message(Api):
 
         return "[%s]" % ','.join([str(user_id) for user_id in to_user_id])
 
-    async def send(self, 
+    async def send(
+        self, 
         msg: str, 
         to_user_id: Union[int, str, list[Union[int, str]]]
     ) -> dict[str, Any]:
@@ -1073,7 +1130,8 @@ class Message(Api):
             "userIds": self.__set_to_user_id_str(to_user_id)
         })
 
-    async def send_music(self, 
+    async def send_music(
+        self, 
         msg: str, 
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
@@ -1088,7 +1146,8 @@ class Message(Api):
             "id": id_
         })
 
-    async def send_album(self, 
+    async def send_album(
+        self, 
         msg: str, 
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
@@ -1103,7 +1162,8 @@ class Message(Api):
             "id": id_
         })
 
-    async def send_playlist(self, 
+    async def send_playlist(
+        self, 
         msg: str, 
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
@@ -1121,7 +1181,8 @@ class Message(Api):
 
 class EventItem(Music163Comment):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: dict[str, str],
         event_data: dict[str, Any]
     ) -> None:
@@ -1152,7 +1213,8 @@ class EventItem(Music163Comment):
         # 动态时间
         self.event_time = event_data["eventTime"]
 
-    async def forward(self, 
+    async def forward(
+        self, 
         msg: str
     ) -> dict[str, Any]:
         """
@@ -1167,7 +1229,8 @@ class EventItem(Music163Comment):
 
 class Event(Api, ListObject):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
@@ -1175,7 +1238,8 @@ class Event(Api, ListObject):
     def __next__(self) -> EventItem:
         return EventItem(self._headers, super().__next__())
 
-    async def read(self, 
+    async def read(
+        self, 
         last_time: Union[str, int] = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
@@ -1193,7 +1257,8 @@ class Event(Api, ListObject):
         self.music_list = data['event']
         return data
 
-    async def read_user(self, 
+    async def read_user(
+        self, 
         user_id: Union[str, int], 
         last_time: Union[str, int] = -1, 
         limit: int = 30
@@ -1214,7 +1279,8 @@ class Event(Api, ListObject):
         self.music_list = data['event']
         return data
 
-    async def del_(self, 
+    async def del_(
+        self, 
         id_: Union[str, int]
     ) -> dict[str, Any]:
         """
@@ -1224,7 +1290,8 @@ class Event(Api, ListObject):
             "id": id_
         })
 
-    async def send(self,
+    async def send(
+        self,
         msg: str
     ) -> dict[str, Any]:
         """
@@ -1236,7 +1303,8 @@ class Event(Api, ListObject):
             "type": "noresource"
         })
 
-    async def send_music(self,
+    async def send_music(
+        self,
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
@@ -1249,7 +1317,8 @@ class Event(Api, ListObject):
             "type": "song"
         })
 
-    async def send_playlist(self,
+    async def send_playlist(
+        self,
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
@@ -1262,7 +1331,8 @@ class Event(Api, ListObject):
             "type": "playlist"
         })
 
-    async def send_mv(self,
+    async def send_mv(
+        self,
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
@@ -1275,7 +1345,8 @@ class Event(Api, ListObject):
             "type": "mv"
         })
 
-    async def send_dj(self,
+    async def send_dj(
+        self,
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
@@ -1288,7 +1359,8 @@ class Event(Api, ListObject):
             "type": "djprogram"
         })
 
-    async def send_dj_music(self,
+    async def send_dj_music(
+        self,
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
@@ -1304,7 +1376,8 @@ class Event(Api, ListObject):
 
 class CloudMusic(Api):
 
-    def __init__(self,
+    def __init__(
+        self,
         headers: Optional[dict[str, str]],
         cloud_music_data: dict[str, Any]
     ) -> None:
@@ -1346,7 +1419,8 @@ class Cloud(Api, ListObject):
 
 class My(User):
 
-    def __init__(self, 
+    def __init__(
+        self, 
         headers: Optional[dict[str, str]], 
         user_data: dict[str, Any]
     ) -> None:
@@ -1357,7 +1431,8 @@ class My(User):
         self.login_time = int(user_data["profile"]["lastLoginTime"] / 1000)
         self.login_time_str = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(self.login_time))
 
-    async def sign(self, 
+    async def sign(
+        self, 
         type_: bool = True
     ) -> dict[str, Any]:
         """
@@ -1389,7 +1464,8 @@ class My(User):
 
         return (ShortPlayList(self._headers, playlist_data) for playlist_data in data["recommend"])
 
-    async def playmode_intelligence(self, 
+    async def playmode_intelligence(
+        self, 
         music_id: Union[str, int], 
         sid: Optional[Union[str, int]] = None, 
         playlist_id: Optional[Union[str, int]] = None
@@ -1413,7 +1489,8 @@ class My(User):
 
         return (Music(self._headers, music_data["songInfo"]) for music_data in data["data"])
     
-    async def sublist_artist(self, 
+    async def sublist_artist(
+        self, 
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
@@ -1431,7 +1508,8 @@ class My(User):
 
         return data["count"], (ShortArtist(self._headers, artist_data) for artist_data in data["data"])
 
-    async def sublist_album(self, 
+    async def sublist_album(
+        self, 
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
@@ -1449,7 +1527,8 @@ class My(User):
 
         return data["count"], (ShortAlbum(self._headers, album_data) for album_data in data["data"])
 
-    async def sublist_dj(self, 
+    async def sublist_dj(
+        self, 
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortDj, None, None]], dict[str, Any]]:
@@ -1467,7 +1546,8 @@ class My(User):
 
         return data["count"], (ShortDj(self._headers, dj_data) for dj_data in data["djRadios"])
     
-    async def sublist_mv(self, 
+    async def sublist_mv(
+        self, 
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortMv, None, None]], dict[str, Any]]:
@@ -1485,7 +1565,8 @@ class My(User):
 
         return data["count"], (ShortMv(self._headers, mv_data) for mv_data in data["data"])
     
-    async def sublist_topic(self, 
+    async def sublist_topic(
+        self, 
         page: int = 0, 
         limit: int = 50
     ) -> dict[str, Any]:
@@ -1521,7 +1602,8 @@ class My(User):
         """
         return Event(self._headers)
 
-    async def cloud(self, 
+    async def cloud(
+        self, 
         page: int = 0, 
         limit: int = 30
     ) -> Union[Cloud, dict[str, Any]]:
