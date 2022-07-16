@@ -1,5 +1,5 @@
 import time
-from typing import Generator, Optional, Union, Any
+from typing import Generator, NoReturn, Optional, Union, Any
 from pycloudmusic.baseclass import *
 
 
@@ -17,12 +17,19 @@ DATA_TYPE = [
 
 class Music163Comment(CommentObject):
 
-    def __init__(self, headers: Optional[dict[str, str]] = None) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]] = None
+    ) -> None:
         super().__init__(headers)
         self.data_type: Optional[str] = None
         self.id: Optional[int] = None
 
-    async def comment(self, hot: bool = True, page: int = 0, limit: int = 20, before_time: int = 0) -> dict[str, Any]:
+    async def comment(self, 
+        hot: bool = True, 
+        page: int = 0, 
+        limit: int = 20, 
+        before_time: int = 0
+    ) -> dict[str, Any]:
         api = "/api/v1/resource/hotcomments" if hot else "/api/v1/resource/comments"
         return await self._post("%s/%s%s" % (api, self.data_type, self.id), {
             "rid": self.id, 
@@ -31,7 +38,11 @@ class Music163Comment(CommentObject):
             "beforeTime": before_time
         })
     
-    async def comment_floor(self, comment_id: Union[str, int], page: int = 0, limit: int = 20) -> dict[str, Any]:
+    async def comment_floor(self, 
+        comment_id: Union[str, int], 
+        page: int = 0, 
+        limit: int = 20
+    ) -> dict[str, Any]:
         return await self._post("/api/resource/comment/floor/get", {
             "parentCommentId": comment_id, 
             "threadId": "%s%s" % (self.data_type, self.id), 
@@ -39,25 +50,35 @@ class Music163Comment(CommentObject):
             "offset": limit * page
         })
 
-    async def comment_like(self, comment_id: Union[str, int], in_: bool) -> dict[str, Any]:
+    async def comment_like(self, 
+        comment_id: Union[str, int], 
+        in_: bool
+    ) -> dict[str, Any]:
         return await self._post("/api/v1/comment%s" % '/like' if in_ else '/unlike', {
             "threadId": "%s%s" % (self.data_type, self.id),
             "commentId": comment_id
         })
 
-    async def comment_add(self, content: str) -> dict[str, Any]:
+    async def comment_add(self, 
+        content: str
+    ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/add", {
             "threadId": "%s%s" % (self.data_type, self.id),
             "content": content
         })
     
-    async def comment_delete(self, comment_id: Union[str, int]) -> dict[str, Any]:
+    async def comment_delete(self, 
+        comment_id: Union[str, int]
+    ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/delete", {
             "threadId": "%s%s" % (self.data_type, self.id),
             "commentId": comment_id
         })
     
-    async def comment_reply(self, comment_id: Union[str, int], content: str) -> dict[str, Any]:
+    async def comment_reply(self,
+        comment_id: Union[str, int], 
+        content: str
+    ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/reply", {
             "threadId": "%s%s" % (self.data_type, self.id),
             "commentId": comment_id,
@@ -67,22 +88,31 @@ class Music163Comment(CommentObject):
 
 class _Music(DataObject, Music163Comment):
 
-    def __init__(self, headers: Optional[dict[str, str]], music_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        music_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, music_data)
         self.quality: dict = {}
         self.mv_id = 0
+        self.album_data: dict[str, Any] = {}
     
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         raise TypeError("无法直接收藏 该对象不支持收藏")
 
-    async def similar(self) -> Any:
+    async def similar(self) -> dict[str, Any]:
         return await self._post("/api/v1/discovery/simiSong", {
             "songid": self.id,
             "limit": 50, 
             "offset": 0
         })
     
-    async def similar_playlist(self, page: int=0, limit: int=50) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
+    async def similar_playlist(self, 
+        page: int = 0, 
+        limit: int = 50
+    ) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
         """
         该music对象的相似歌单
         """
@@ -97,7 +127,10 @@ class _Music(DataObject, Music163Comment):
             
         return (PlayList(self._headers, playlist_data) for playlist_data in data['playlists'])
 
-    async def similar_user(self, page: int=0, limit: int=50) -> Union[Generator["User", None, None], dict[str, Any]]:
+    async def similar_user(self, 
+        page: int = 0, 
+        limit: int = 50
+    ) -> Union[Generator["User", None, None], dict[str, Any]]:
         """
         最近5个听了这music对象的用户
         """
@@ -112,7 +145,9 @@ class _Music(DataObject, Music163Comment):
             
         return (User(self._headers, user_data) for user_data in data['userprofiles'])
 
-    async def like(self, like: bool=True):
+    async def like(self, 
+        like: bool = True
+    ) -> dict[str, Any]:
         """
         红心该music对象与取消红心
         """
@@ -123,7 +158,7 @@ class _Music(DataObject, Music163Comment):
             "time": '3'
         })
 
-    async def lyric(self):
+    async def lyric(self) -> dict[str, Any]:
         """
         该music对象的歌词
         """
@@ -134,7 +169,9 @@ class _Music(DataObject, Music163Comment):
             "tv": -1,
         })
 
-    async def _play_url(self, quality=None):
+    async def _play_url(self, 
+        quality = None
+    ) -> dict[str, Any]:
         """
         获取播放该 music 对象指定的歌曲文件 url
         """
@@ -143,7 +180,9 @@ class _Music(DataObject, Music163Comment):
             "br": self.quality[quality]['br'] if quality is not None else 999000
         })
 
-    async def _download_url(self, quality=None):
+    async def _download_url(self, 
+        quality = None
+    ) -> dict[str, Any]:
         """
         下载该 music 对象指定的歌曲
         错误码 -105 需要会员
@@ -153,7 +192,10 @@ class _Music(DataObject, Music163Comment):
             "br": self.quality[quality]['br'] if quality is not None else 999000
         })
 
-    async def play(self, quality=None, download_path: str=None) -> Union[str, dict[str, Any]]:
+    async def play(self, 
+        quality = None, 
+        download_path: str = None
+    ) -> Union[str, dict[str, Any]]:
         """
         获取播放该 music 对象指定的歌曲文件
         """
@@ -163,7 +205,10 @@ class _Music(DataObject, Music163Comment):
 
         return await self._download(data["data"][0]["url"], f"{self.id}.mp3", download_path)
     
-    async def download(self, quality=None, download_path: str=None) -> Union[str, dict[str, Any]]:
+    async def download(self, 
+        quality = None, 
+        download_path: str = None
+    ) -> Union[str, dict[str, Any]]:
         """
         获取下载该 music 对象指定的歌曲文件
         """
@@ -173,7 +218,7 @@ class _Music(DataObject, Music163Comment):
 
         return await self._download(data["data"]["url"], f"{self.id}.mp3", download_path)
 
-    async def album(self):
+    async def album(self) -> Union["Album", dict[str, Any]]:
         """
         实例化该对像专辑album对像 并返回album对像
         """
@@ -181,7 +226,7 @@ class _Music(DataObject, Music163Comment):
         
         return await Music163Api(headers=self._headers).album(self.album_data["id"])
 
-    async def mv(self):
+    async def mv(self) -> Union["Mv", dict[str, Any]]:
         """
         获取该对像mv实例化mv对像 并返回mv对像
         """
@@ -192,7 +237,10 @@ class _Music(DataObject, Music163Comment):
 
 class Music(_Music):
 
-    def __init__(self, headers: Optional[dict[str, str]], music_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        music_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, music_data)
         # 资源类型
         self.data_type = DATA_TYPE[0]
@@ -221,13 +269,35 @@ class Music(_Music):
         else:
             self.publish_time = None
 
-        # True时获取完成资源链接后直接返回(不进行下载)
-        self.not_download = False
 
+class _PlayList(DataListObject, Music163Comment):
 
-class PlayList(DataListObject, Music163Comment):
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        playlist_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, playlist_data)
+        self.music_list = []
 
-    def __init__(self, headers: Optional[dict[str, str]], playlist_data: dict[str, Any]) -> None:
+    def __next__(self) -> Music:
+        return Music(self._headers, super().__next__())
+
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
+        return await self._post("/api/playlist%s" % '/subscribe' if in_ else '/unsubscribe', {
+            "id": self.id
+        })
+    
+    async def similar(self) -> Any:
+        raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
+
+class PlayList(_PlayList):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        playlist_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, playlist_data)
         # 资源类型
         self.data_type = DATA_TYPE[2]
@@ -254,21 +324,41 @@ class PlayList(DataListObject, Music163Comment):
         # 歌单歌曲
         self.music_list = playlist_data["tracks"]
 
-    def __next__(self) -> Music:
-        return Music(self._headers, super().__next__())
 
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
-        return await self._post("/api/playlist%s" % '/subscribe' if in_ else '/unsubscribe', {
-            "id": self.id
-        })
+class ShortPlayList(_PlayList):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        playlist_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, playlist_data)
+        # 资源类型
+        self.data_type = DATA_TYPE[2]
+        # 歌单id
+        self.id = playlist_data["id"]
+        # 歌单标题
+        self.name = playlist_data["name"]
+        # 歌单封面
+        self.cover = playlist_data['picUrl']
+        # 歌单创建者
+        self.user = playlist_data['creator']
+        self.user_str = playlist_data['creator']["nickname"]
+        # 歌单播放量
+        self.play_count = playlist_data["playcount"]
+        # 歌单创建时间
+        self.create_time = playlist_data["createTime"]
+        self.track_count = playlist_data["trackCount"]
     
-    async def similar(self) -> Any:
-        raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
+    def __next__(self) -> NoReturn:
+        raise TypeError("ShortPlayList 并非一个完整的 PlayList , 请用 ShortPlayList 的歌单 id 请求一个完整的 PlayList 实例, 来得到歌单曲目")
 
 
 class User(Api):
 
-    def __init__(self, headers: Optional[dict[str, str]], user_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        user_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers)
         _user_data = user_data["profile"] if "profile" in user_data else user_data
         # 用户uid
@@ -288,12 +378,15 @@ class User(Api):
     async def _get_like_playlist_id(self):
         if self.like_playlist_id is None:
             data = await self.playlist(limit=1)
-            if type(data) == int:
+            if type(data) == dict:
                 return data
             self.like_playlist_id = next(data).id
         return self.like_playlist_id
 
-    async def playlist(self, page: int=0, limit: int=30) -> Union[Generator[PlayList, None, None], dict[str, Any]]:
+    async def playlist(self, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[Generator[PlayList, None, None], dict[str, Any]]:
         """
         获取该对象的歌单
         """
@@ -307,7 +400,7 @@ class User(Api):
         if data["code"] != 200:
             return data["code"]
         
-        return (PlayList(self._headers, PlayList) for PlayList in data['playlist'])
+        return (PlayList(self._headers, playlist_data) for playlist_data in data['playlist'])
 
     async def like_music(self) -> Union[PlayList, dict[str, Any]]:
         """
@@ -318,7 +411,9 @@ class User(Api):
         like_playlist_id = await self._get_like_playlist_id()
         return await Music163Api(self._headers["cookie"]).playlist(like_playlist_id)
 
-    async def record(self, type_: bool=True) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    async def record(self, 
+        type_: bool = True
+    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
         """
         获取该对象听歌榜单
         """
@@ -339,23 +434,23 @@ class User(Api):
         return await self._post(f"/api/user/{follow_in_}/{self.id}")
 
 
-class Album(DataListObject, Music163Comment):
+class _Album(DataListObject, Music163Comment):
 
-    def __init__(self, headers: Optional[dict[str, str]], album_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        album_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, album_data)
         self.data_type = DATA_TYPE[3]
         # 专辑id
-        self.id = album_data["id"]
-        # 专辑标题
-        self.name = album_data["name"]
-        # 专辑封面
-        self.cover = album_data['picUrl']
-        self.music_list = album_data["songs"]
+        self.id = 0
 
     def __next__(self) -> Music:
         return Music(self._headers, super().__next__())
 
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         return await self._post("/api/album%s" % "/sub" if in_ else "/unsub", {
             "id": self.id
         })
@@ -363,59 +458,109 @@ class Album(DataListObject, Music163Comment):
     async def similar(self) -> Any:
         raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
 
+class Album(_Album):
 
-class Mv(DataObject, Music163Comment):
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        album_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, album_data)
+        # 专辑id
+        self.id = album_data["album"]["id"]
+        # 专辑标题
+        self.name = album_data["album"]["name"]
+        # 专辑类型
+        self.sub_type = album_data["album"]["subType"]
+        # 专辑别名
+        self.alias = album_data["album"]["alias"]
+        self.alias_str = "/".join(self.alias)
+        # 专辑主作者
+        self.artist = album_data["album"]["artist"]
+        # 专辑所有作者
+        self.artists = album_data["album"]["artists"]
+        self.artists_str = "/".join([artists_data["name"] for artists_data in self.artists])
+        # 专辑曲目数
+        self.size = album_data["album"]["size"]
+        # 专辑简介
+        self.description = album_data["album"]["description"]
+        # 未知
+        self.liked = album_data["album"]["info"]["liked"]
+        # 专辑评论数
+        self.comment_count = album_data["album"]["info"]["commentCount"]
+        # 专辑分享数
+        self.share_count = album_data["album"]["info"]["shareCount"]
+        # 未知
+        self.liked_count = album_data["album"]["info"]["likedCount"]
+        # 专辑封面
+        self.cover = album_data["album"]['picUrl']
+        self.music_list = album_data["songs"]
 
-    def __init__(self, headers: Optional[dict[str, str]], mv_data: dict[str, Any]) -> None:
+
+class ShortAlbum(_Album):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        album_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, album_data)
+        # 专辑id
+        self.id = album_data["id"]
+        # 专辑标题
+        self.name = album_data["name"]
+        # 专辑别名
+        self.alias = album_data["alias"]
+        self.alias_str = "/".join(self.alias)
+        # 专辑所有作者
+        self.artists = album_data["artists"]
+        self.artists_str = "/".join([artists_data["name"] for artists_data in self.artists])
+        # 专辑曲目数
+        self.size = album_data["size"]
+        # 专辑封面
+        self.cover = album_data["picUrl"]
+        # 专辑收藏时间
+        self.sub_time = album_data["subTime"] if "subTime" in album_data else 0
+
+    def __next__(self) -> NoReturn:
+        raise TypeError("ShortAlbum 并非一个完整的 Album , 请用 ShortAlbum 的专辑 id 请求一个完整的 Album 实例, 来得到专辑曲目")
+
+
+class _Mv(DataObject, Music163Comment):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        mv_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, mv_data)
         self.data_type = DATA_TYPE[1]
-        # mv id
-        self.id = mv_data['data']["id"]
-        # mv标题
-        self.name = mv_data['data']["name"]
-        # mv介绍
-        self.desc = mv_data["data"]["desc"]
-        # mv歌手
-        self.artists = mv_data["data"]["artists"]
-        self.artists_str = "/".join([artists['name'] for artists in self.artists])
-        # mv tags
-        self.tags = mv_data["data"]["videoGroup"]
-        self.tags_str = "/".join([tags['name'] for tags in self.tags])
-        # mv封面
-        self.cover = mv_data["data"]["cover"]
-        # mv播放数
-        self.play_count = mv_data["data"]["playCount"]
-        # mv收藏数
-        self.subscribe_count = mv_data["data"]["subCount"]
-        # mv评论数
-        self.comment_count = mv_data["data"]["commentCount"]
-        # mv分享数
-        self.share_count = mv_data["data"]["shareCount"]
-        # mv质量
-        self.quality = mv_data["data"]["brs"]
-        # 发布时间
-        self.publish_time = mv_data["data"]["publishTime"]
-        # True时获取完成资源链接后直接返回(不进行下载)
-        self.not_download = False
+        self.id = 0
 
-    async def play(self, download_path, quality=1080):
+    async def _play_url(self, 
+        quality: Union[str, int] = 1080
+    ) -> dict[str, Any]:
+        """
+        获取播放该mv对象指定的视频 url
+        """
+        return await self._post("/api/song/enhance/play/mv/url", {
+            "id": self.id, "r": quality
+        })
+
+    async def play(self, 
+        download_path: Optional[str] = None, 
+        quality: Union[str, int] = 1080
+    ) -> Union[str, dict[str, Any]]:
         """
         获取播放该mv对象指定的视频文件
         """
-        data = await self._post("/api/song/enhance/play/mv/url", {
-            "id": self.id, "r": quality
-        })
+        data = await self._play_url(quality)
 
         if data["code"] != 200:
             return data
 
-        url = data["data"]["url"]
-        if self.not_download:
-            return url
+        return await self._download(data["data"]["url"], f"{self.id}.mp4", download_path)
 
-        return await self._download(url, f"{self.name}.mp4", download_path)
-
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         return await self._post("/api/mv%s" % "/sub" if in_ else "/unsub", {
             "mvId": self.id,
             "mvIds": '["' + str(self.id) + '"]',
@@ -427,28 +572,74 @@ class Mv(DataObject, Music163Comment):
         })
 
 
-class Artist(DataObject):
+class Mv(_Mv):
 
-    def __init__(self, headers: Optional[dict[str, str]], artist_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        mv_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, mv_data)
+        # mv id
+        self.id = mv_data["id"]
+        # mv标题
+        self.name = mv_data["name"]
+        # mv介绍
+        self.desc = mv_data["desc"]
+        # mv歌手
+        self.artists = mv_data["artists"]
+        self.artists_str = "/".join([artists['name'] for artists in self.artists])
+        # mv tags
+        self.tags = mv_data["videoGroup"]
+        self.tags_str = "/".join([tags['name'] for tags in self.tags])
+        # mv封面
+        self.cover = mv_data["cover"]
+        # mv播放数
+        self.play_count = mv_data["playCount"]
+        # mv收藏数
+        self.subscribe_count = mv_data["subCount"]
+        # mv评论数
+        self.comment_count = mv_data["commentCount"]
+        # mv分享数
+        self.share_count = mv_data["shareCount"]
+        # mv质量
+        self.quality = mv_data["brs"]
+        # 发布时间
+        self.publish_time = mv_data["publishTime"]
+
+
+class ShortMv(_Mv):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        mv_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, mv_data)
+        # mv id
+        self.id = mv_data["vid"]
+        # mv标题
+        self.name = mv_data["title"]
+        # mv歌手
+        self.artists = mv_data["creator"]
+        self.artists_str = "/".join([artists['userName'] for artists in self.artists])
+        # mv封面
+        self.cover = mv_data["coverUrl"]
+
+
+class _Artist(DataObject):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        artist_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, artist_data)
         self.data_type = "artist"
-        # 歌手id
-        self.id = artist_data["id"]
-        # 歌手
-        self.name = artist_data["name"]
-        # 歌手简介
-        self.brief_desc_str = artist_data["briefDesc"]
-        self.brief_desc = artist_data["briefDesc"].split("\n")
-        # 专辑数
-        self.album_size = artist_data["albumSize"]
-        # 单曲数
-        self.music_size = artist_data["musicSize"]
-        # mv数
-        self.mv_size = artist_data["mvSize"]
-        # 头像
-        self.cover = artist_data["cover"]
+        self.id = 0
 
-    async def song(self, hot: bool=True, page: int=0, limit: int=100) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    async def song(self, 
+        hot: bool = True, 
+        page: int = 0, 
+        limit: int = 100
+    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
         """
         获取该对像歌曲
         """
@@ -479,7 +670,10 @@ class Artist(DataObject):
 
         return (Music(self._headers, music_data) for music_data in data['songs'])
 
-    async def album(self, page: int=0, limit: int=30) -> Union[Generator[Album, None, None], dict[str, Any]]:
+    async def album(self, 
+        page: int = 0,
+        limit: int = 30
+    ) -> Union[Generator[Album, None, None], dict[str, Any]]:
         """
         获取该对像专辑
         """
@@ -492,10 +686,12 @@ class Artist(DataObject):
 
         return (Album(self._headers, album_data) for album_data in data["hotAlbums"])
     
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         return await self._post("/api/artist%s" % "/sub" if in_ else "/unsub", {
             "artistId": self.id,
-            "artistIds": '["' + str(self.id) + '"]'
+            "artistIds": f'["{self.id}"]'
         })
     
     async def similar(self) -> Any:
@@ -503,10 +699,57 @@ class Artist(DataObject):
             "artistid": self.id
         })
 
+class Artist(_Artist):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        artist_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, artist_data)
+        # 歌手id
+        self.id = artist_data["id"]
+        # 歌手
+        self.name = artist_data["name"]
+        # 歌手简介
+        self.brief_desc_str = artist_data["briefDesc"]
+        self.brief_desc = artist_data["briefDesc"].split("\n")
+        # 专辑数
+        self.album_size = artist_data["albumSize"]
+        # 单曲数
+        self.music_size = artist_data["musicSize"]
+        # mv数
+        self.mv_size = artist_data["mvSize"]
+        # 头像
+        self.cover = artist_data["cover"]
+
+
+class ShortArtist(_Artist):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        artist_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, artist_data)
+        # 歌手id
+        self.id = artist_data["id"]
+        # 歌手
+        self.name = artist_data["name"]
+        # 歌手
+        self.alias = artist_data["alias"]
+        self.alias_str = "/".join(self.alias)
+        # 专辑数
+        self.album_size = artist_data["albumSize"]
+        # mv数
+        self.mv_size = artist_data["mvSize"]
+        # 头像
+        self.cover = artist_data["picUrl"]
 
 class DjMusic(Music163Comment):
 
-    def __init__(self, headers, dj_music_data):
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        dj_music_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers)
         self.data_type = DATA_TYPE[4]
         # 电台节目id
@@ -527,38 +770,24 @@ class DjMusic(Music163Comment):
         self.comment_count = dj_music_data["commentCount"]
 
 
-class Dj(DataListObject):
+class _Dj(DataListObject):
 
-    def __init__(self, headers: Optional[dict[str, str]], dj_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        dj_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, dj_data)
         self.data_type = DATA_TYPE[4]
-        # 电台标题
-        self.name = dj_data["name"]
-        # 电台id
-        self.id = dj_data["id"]
-        # 电台封面
-        self.cover = dj_data['picUrl']
-        # 电台创建者
-        self.user = dj_data['dj']
-        self.user_str = self.user["nickname"]
-        # 电台描述
-        self.description = dj_data["desc"]
-        # 电台tags
-        self.tags = dj_data['category']
-        # self.tags_str = self.set_list_str(playlist_data['tags'])
-        # 电台分享量
-        self.share_count = dj_data["shareCount"]
-        # 电台收藏量
-        self.subscribed_count = dj_data["subCount"]
-        # 电台单曲数
-        self.music_count = dj_data["programCount"]
-        # 电台创建时间
-        self.create_time = dj_data["createTime"]
+        self.id = 0
 
     def __next__(self) -> DjMusic:
         return DjMusic(self._headers, super().__next__())
     
-    async def read(self, page=0, limit=30, asc=False):
+    async def read(self, 
+        page: int = 0, 
+        limit: int= 30, 
+        asc: bool = False
+    ) -> dict[str, Any]:
         """
         获取电台节目
         """
@@ -572,7 +801,9 @@ class Dj(DataListObject):
         self.music_list = data["programs"]
         return data
     
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         return await self._post("/api/djradio%s" % "/sub" if in_ else "/unsub", {
             "id": self.id
         })
@@ -580,10 +811,95 @@ class Dj(DataListObject):
     async def similar(self) -> Any:
         raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
 
+class Dj(_Dj):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        dj_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, dj_data)
+        # 电台标题
+        self.name = dj_data["name"]
+        # 电台id
+        self.id = dj_data["id"]
+        # 电台封面
+        self.cover = dj_data['picUrl']
+        # 电台创建者
+        self.user = dj_data['dj']
+        self.user_str = self.user["nickname"]
+        # 电台描述
+        self.description = dj_data["desc"]
+        # 电台小描述
+        self.rcmd_text = dj_data["rcmdText"]
+        # 电台标签
+        self.tags = [
+            {"id": dj_data['categoryId'], "name": dj_data['category']},
+            {"id": dj_data['secondCategoryId'], "name": dj_data['secondCategory']},
+        ]
+        self.tags_str = "/".join([tag["name"] for tag in self.tags])
+        # 电台分享量
+        self.share_count = dj_data["shareCount"]
+        # 电台收藏量
+        self.subscribed_count = dj_data["subCount"]
+        # 电台单曲数
+        self.music_count = dj_data["programCount"]
+        # 电台评论数
+        self.count = dj_data["commentCount"]
+        # 电台创建时间
+        self.create_time = dj_data["createTime"]
+        # 是否收藏了电台
+        self.subed =  dj_data["subed"]
+        # 最后上传电台节目 id
+        self.last_music_id = dj_data["lastProgramId"]
+        # 最后上传电台节目时间
+        self.last_music_create_time = dj_data["lastProgramCreateTime"]
+
+
+class ShortDj(_Dj):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        dj_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, dj_data)
+        # 电台标题
+        self.name = dj_data["name"]
+        # 电台id
+        self.id = dj_data["id"]
+        # 电台封面
+        self.cover = dj_data['picUrl']
+        # 电台创建者
+        self.user = dj_data['dj']
+        self.user_str = self.user["nickname"]
+        # 电台描述
+        self.description = dj_data["desc"]
+        # 电台小描述
+        self.rcmd_text = dj_data["rcmdtext"]
+        # 电台标签
+        self.tags = [
+            {"id": dj_data['categoryId'], "name": dj_data['category']}
+        ]
+        self.tags_str = self.tags[0]["name"]
+        # 电台收藏量
+        self.subscribed_count = dj_data["subCount"]
+        # 电台单曲数
+        self.music_count = dj_data["programCount"]
+        # 电台创建时间
+        self.create_time = dj_data["createTime"]
+        # 最后上传电台节目 id
+        self.last_music_id = dj_data["lastProgramId"]
+        # 最后上传电台节目时间
+        self.last_music_create_time = dj_data["lastProgramCreateTime"]
+        # 最后上传电台节目标题
+        self.last_music_name = dj_data["lastProgramName"]
+
 
 class FmMusic(_Music):
 
-    def __init__(self, headers: Optional[dict[str, str]], music_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        music_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, music_data)
         # 资源类型
         self.data_type = DATA_TYPE[0]
@@ -607,7 +923,9 @@ class FmMusic(_Music):
 
 class Fm(Api, ListObject):
 
-    def __init__(self, headers: Optional[dict[str, str]] = None) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]] = None
+    ) -> None:
         super().__init__(headers)
 
     def __next__(self) -> FmMusic:
@@ -625,7 +943,9 @@ class Fm(Api, ListObject):
         self.music_list = data["data"]
         return data
 
-    async def write(self, id_: Union[int, str]):
+    async def write(self, 
+        id_: Union[int, str]
+    ) -> dict[str, Any]:
         """
         将歌曲扔进垃圾桶 (优化推荐)
         """
@@ -634,9 +954,223 @@ class Fm(Api, ListObject):
         })
 
 
+class Message(Api):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]],
+        user_id: Union[str, int]
+    ) -> None:
+        super().__init__(headers)
+        self.id = user_id
+
+    async def comments(self, 
+        before_time: int = -1, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取评论
+        """
+        return await self._post(f"/api/v1/user/comments{self.id}", {
+            "beforeTime": before_time, 
+            "limit": limit, 
+            "total": 'true', 
+            "uid": self.id
+        })
+
+    async def forwards(self, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取@我
+        """
+        return await self._post("/api/forwards/get", {
+            "offset": limit * page, 
+            "limit": limit, 
+            "total": 'true'
+        })
+
+    async def notices(self, 
+        last_time: int = -1, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取通知
+        """
+        return await self._post("/api/msg/notices", {
+            "limit": limit, 
+            "time": last_time
+        })
+
+    async def private_new(self) -> dict[str, Any]:
+        """
+        获取最接近联系人
+        """
+        return await self._post("/api/msg/recentcontact/get")
+
+    async def private_history(self, 
+        id_: Union[str, int], 
+        page: int = 0, 
+        limit: int = 30, 
+    ) -> dict[str, Any]:
+        """
+        获取指定用户历史私信
+        """
+        return await self._post("/api/msg/private/history", {
+            "userId": id_, 
+            "offset": limit * page, 
+            "limit": limit, 
+            "total": 'true'
+        })
+
+    async def private(self, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """
+        获取私信列表
+        """
+        return await self._post("/api/msg/private/users", {
+            "offset": limit * page, 
+            "limit": limit, 
+            "total": 'true'
+        })
+
+    def __set_to_user_id_str(self, 
+        to_user_id: Union[int, str, list[Union[int, str]]]
+    ) -> str:
+        if type(to_user_id) != list:
+            return str(to_user_id)
+
+        return "[%s]" % ','.join([str(user_id) for user_id in to_user_id])
+
+    async def send(self, 
+        msg: str, 
+        to_user_id: Union[int, str, list[Union[int, str]]]
+    ) -> dict[str, Any]:
+        """
+        发送私信
+        """
+        return await self._post("/api/msg/private/send", {
+            "msg": msg, 
+            "type": "text", 
+            "userIds": self.__set_to_user_id_str(to_user_id)
+        })
+
+    async def send_music(self, 
+        msg: str, 
+        to_user_id: Union[int, str, list[Union[int, str]]],
+        id_: Union[int, str]
+    ) -> dict[str, Any]:
+        """
+        发送私信 带歌曲 id_:歌曲id (其他参数查看send())
+        """
+        return await self._post("/api/msg/private/send", {
+            "msg": msg, 
+            "type": "song", 
+            "userIds": self.__set_to_user_id_str(to_user_id),
+            "id": id_
+        })
+
+    async def send_album(self, 
+        msg: str, 
+        to_user_id: Union[int, str, list[Union[int, str]]],
+        id_: Union[int, str]
+    ) -> dict[str, Any]:
+        """
+        发送私信 带专辑 id_:专辑id (其他参数查看send())
+        """
+        return await self._post("/api/msg/private/send", {
+            "msg": msg, 
+            "type": "album", 
+            "userIds": self.__set_to_user_id_str(to_user_id),
+            "id": id_
+        })
+
+    async def send_playlist(self, 
+        msg: str, 
+        to_user_id: Union[int, str, list[Union[int, str]]],
+        id_: Union[int, str]
+    ) -> dict[str, Any]:
+        """
+        发送私信 带歌单 不能发送重复的歌单 id_:歌单id (其他参数查看send())
+        """
+        return await self._post("/api/msg/private/send", {
+            "msg": msg, 
+            "type": "playlist", 
+            "userIds": self.__set_to_user_id_str(to_user_id),
+            "id": id_
+        })
+
+
+class EventItem(Music163Comment):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]],
+        event_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers)
+
+
+class Event(Api, ListObject):
+
+    def __init__(self, 
+        headers: Optional[dict[str, str]] = None
+    ) -> None:
+        super().__init__(headers)
+
+    def __next__(self) -> EventItem:
+        return EventItem(self._headers, super().__next__())
+
+
+class CloudMusic(Api):
+
+    def __init__(self,
+        headers: Optional[dict[str, str]],
+        cloud_music_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers)
+        # 云盘歌曲id
+        self.id = cloud_music_data["simpleSong"]["id"]
+        # 标题
+        self.name = cloud_music_data["songName"]
+        # 歌曲大小
+        self.file_size = cloud_music_data["fileSize"]
+        # 歌曲文件名
+        self.file_name = cloud_music_data["fileName"]
+        # 歌手
+        self.artist = cloud_music_data["artist"]
+        # 专辑
+        self.album = cloud_music_data["album"]
+        # 封面
+        self.cover = cloud_music_data["simpleSong"]['al']["picUrl"]
+        # 上传时间
+        self.add_time = cloud_music_data["addTime"]
+
+
+class Cloud(Api, ListObject):
+
+    def __init__(self, headers, cloud_data):
+        super().__init__(headers)
+        # 云盘歌曲数
+        self.cloud_count = cloud_data["count"]
+        # 云盘最大容量
+        self.max_size = cloud_data["maxSize"]
+        # 云盘已用容量
+        self.size = cloud_data["size"]
+        # 云盘当时页歌曲数据
+        self.music_list = cloud_data["data"]
+
+    def __next__(self) -> CloudMusic:
+        return CloudMusic(self._headers, super().__next__())
+
+
 class My(User):
 
-    def __init__(self, headers: Optional[dict[str, str]], user_data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        user_data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, user_data)
         # 登录ip
         self.login_ip = user_data["profile"]["lastLoginIP"]
@@ -644,8 +1178,182 @@ class My(User):
         self.login_time = int(user_data["profile"]["lastLoginTime"] / 1000)
         self.login_time_str = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(self.login_time))
 
-    def fm(self):
+    async def sign(self, 
+        type_: bool = True
+    ) -> dict[str, Any]:
         """
-        私人fm 实例化一个fm对象 并返回
+        使用该对象签到
+        """
+        return await self._post("/api/point/dailyTask", {
+            "type": 0 if type_ else 1
+        })
+
+    async def recommend_songs(self) -> Union[Generator[Music, None, None], dict[str, Any]]:
+        """
+        获取日推
+        """
+        data = await self._post("/api/v3/discovery/recommend/songs")
+        
+        if data["code"] != 200:
+            return data
+
+        return (Music(self._headers, music_data) for music_data in data["data"]["dailySongs"])
+
+    async def recommend_resource(self) -> Union[Generator[ShortPlayList, None, None], dict[str, Any]]:
+        """
+        获取每日推荐歌单
+        """
+        data = await self._post("/api/v1/discovery/recommend/resource")
+        
+        if data["code"] != 200:
+            return data
+
+        return (ShortPlayList(self._headers, playlist_data) for playlist_data in data["recommend"])
+
+    async def playmode_intelligence(self, 
+        music_id: Union[str, int], 
+        sid: Optional[Union[str, int]] = None, 
+        playlist_id: Optional[Union[str, int]] = None
+    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
+        """
+        心动模式/智能播放
+        """
+        if playlist_id is None:
+            playlist_id = await self._get_like_playlist_id()
+
+        data = await self._post("/api/playmode/intelligence/list", {
+            "songId": music_id,
+            "playlistId": playlist_id,
+            "type": "fromPlayOne",
+            "startMusicId": sid if sid is not None else music_id,
+            "count": 1,
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return (Music(self._headers, music_data["songInfo"]) for music_data in data["data"])
+    
+    async def sublist_artist(self, 
+        page: int = 0, 
+        limit: int = 25
+    ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
+        """
+        查看cookie用户收藏的歌手
+        """
+        data = await self._post("/api/artist/sublist", {
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["count"], (ShortArtist(self._headers, artist_data) for artist_data in data["data"])
+
+    async def sublist_album(self, 
+        page: int = 0, 
+        limit: int = 25
+    ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
+        """
+        查看cookie用户收藏的专辑 (参数参考sublist_artist())
+        """
+        data = await self._post("/api/album/sublist", {
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["count"], (ShortAlbum(self._headers, album_data) for album_data in data["data"])
+
+    async def sublist_dj(self, 
+        page: int = 0, 
+        limit: int = 25
+    ) -> Union[tuple[int, Generator[ShortDj, None, None]], dict[str, Any]]:
+        """
+        查看cookie用户收藏的电台 (参数参考sublist_artist())
+        """
+        data = await self._post("/api/djradio/get/subed", {
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["count"], (ShortDj(self._headers, dj_data) for dj_data in data["djRadios"])
+    
+    async def sublist_mv(self, 
+        page: int = 0, 
+        limit: int = 25
+    ) -> Union[tuple[int, Generator[ShortMv, None, None]], dict[str, Any]]:
+        """
+        查看cookie用户收藏的MV (参数参考sublist_artist())
+        """
+        data = await self._post("/api/cloudvideo/allvideo/sublist", {
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["count"], (ShortMv(self._headers, mv_data) for mv_data in data["data"])
+    
+    async def sublist_topic(self, 
+        page: int = 0, 
+        limit: int = 50
+    ) -> dict[str, Any]:
+        """
+        查看cookie用户收藏的专题 (参数参考sublist_artist())
+        """
+        data = await self._post("/api/topic/sublist", {
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data
+
+    def fm(self) -> Fm:
+        """
+        私人 fm 实例化一个 fm 对象并返回
         """
         return Fm(self._headers)
+
+    def message(self) -> Message:
+        """
+        私信 实例化一个 message 对象并返回
+        """
+        return Message(self._headers, self.id)
+
+    def event(self) -> Event:
+        """
+        动态 实例化一个 event 对象并返回
+        """
+        return Event(self._headers)
+
+    async def cloud(self, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[Cloud, dict[str, Any]]:
+        """
+        获取云盘数据并实例化一个 cloud 对象返回
+        """
+        data = await self._post("/api/v1/cloud/get", {
+            'limit': limit, 'offset': page * limit
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return Cloud(self._headers, data)

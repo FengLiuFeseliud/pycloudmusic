@@ -5,17 +5,24 @@ from pycloudmusic.ahttp import Http
 
 class Api(Http, metaclass=ABCMeta):
 
-    def __init__(self, headers: Optional[dict[str, str]] = None) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]] = None
+    ) -> None:
         super().__init__(headers)
 
 
 class DataObject(Api, metaclass=ABCMeta):
 
-    def __init__(self, headers: Optional[dict[str, str]], data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        data: dict[str, Any]
+    ) -> None:
         super().__init__(headers)
     
     @abstractmethod
-    async def subscribe(self, in_: bool = True) -> dict[str, Any]:
+    async def subscribe(self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
         """
         对像 收藏/取消收藏
         """
@@ -51,7 +58,10 @@ class ListObject(metaclass=ABCMeta):
 
 class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
-    def __init__(self, headers: Optional[dict[str, str]], data: dict[str, Any]) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]], 
+        data: dict[str, Any]
+    ) -> None:
         super().__init__(headers, data)
 
     @abstractmethod
@@ -61,46 +71,67 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
 class CommentObject(Api):
 
-    def __init__(self, headers: Optional[dict[str, str]] = None) -> None:
+    def __init__(self, 
+        headers: Optional[dict[str, str]] = None
+    ) -> None:
         super().__init__(headers)
 
     @abstractmethod
-    async def comment(self, hot: bool=True, page: int=0, limit: int=20, before_time: int=0) -> dict[str, Any]:
+    async def comment(self, 
+        hot: bool = True, 
+        page: int = 0, 
+        limit: int = 20,
+        before_time: int = 0
+    ) -> dict[str, Any]:
         """
         该对象的评论
         """
         pass
 
     @abstractmethod
-    async def comment_floor(self, comment_id: Union[str, int], page: int=0, limit: int=20) -> dict[str, Any]:
+    async def comment_floor(self, 
+        comment_id: Union[str, int], 
+        page: int = 0,
+        limit: int = 20
+    ) -> dict[str, Any]:
         """
         楼层评论
         """
         pass
 
     @abstractmethod
-    async def comment_like(self, comment_id: Union[str, int], in_: bool) -> dict[str, Any]:
+    async def comment_like(self, 
+        comment_id: Union[str, int], 
+        in_: bool
+    ) -> dict[str, Any]:
         """
         评论点赞
         """
         pass
 
     @abstractmethod
-    async def comment_add(self, content: str) -> dict[str, Any]:
+    async def comment_add(self, 
+        content: str
+    ) -> dict[str, Any]:
         """
         发送评论
         """
         pass
 
     @abstractmethod
-    async def comment_delete(self, comment_id: Union[str, int]) -> dict[str, Any]:
+    async def comment_delete(self, 
+        comment_id: Union[str, int]
+    ) -> dict[str, Any]:
         """
         删除评论
         """
         pass
 
     @abstractmethod
-    async def comment_reply(self, comment_id: Union[str, int], content: str) -> dict[str, Any]:
+    async def comment_reply(self, 
+        comment_id: Union[str, int], 
+        content: str
+    ) -> dict[str, Any]:
         """
         回复评论
         """
