@@ -23,10 +23,9 @@ class DataObject(Api, metaclass=ABCMeta):
         ...
 
 
-class DataListObject(DataObject, metaclass=ABCMeta):
+class ListObject(metaclass=ABCMeta):
 
-    def __init__(self, headers: Optional[dict[str, str]], data: dict[str, Any]) -> None:
-        super().__init__(headers, data)
+    def __init__(self) -> None:
         self.music_list: list = []
 
     def __iter__(self):
@@ -42,6 +41,16 @@ class DataListObject(DataObject, metaclass=ABCMeta):
         data = self.music_list[self._index]
         self._index += 1
         return data
+
+
+class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
+
+    def __init__(self, headers: Optional[dict[str, str]], data: dict[str, Any]) -> None:
+        super().__init__(headers, data)
+
+    @abstractmethod
+    def __next__(self) -> Any:
+        return super().__next__()
 
 
 class CommentObject(Api):
