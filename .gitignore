@@ -4,3 +4,6 @@
 /pycloudmusic/*/__pycache__
 /download
 /pycloudmusic163
+/.eggs
+/dist
+/pycloudmusic.egg-info
