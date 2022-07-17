@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+import json
 from typing import Any, Optional, Union
 from pycloudmusic.ahttp import Http
 
@@ -10,6 +11,22 @@ class Api(Http, metaclass=ABCMeta):
         headers: Optional[dict[str, str]] = None
     ) -> None:
         super().__init__(headers)
+
+    def __str__(self) -> str:
+        """格式化输出类属性"""
+        str_ = super().__repr__().rsplit(">", maxsplit=1)[0]
+
+        values = list(self.__dict__.values())
+        for key, item in enumerate(self.__dict__):
+            key_value = values[key]
+            if type(key_value) in [list, dict]:
+                # 不输出 self.music_list 详细
+                if item == "music_list":
+                    key_value = f"dataItem * {len(key_value)}"
+                else:
+                    key_value = json.dumps(key_value, indent=6)
+            str_ = f"{str_}\n    {item} = {key_value}"
+        return f"{str_}\n>"
 
 
 class DataObject(Api, metaclass=ABCMeta):
