@@ -1,24 +1,14 @@
 import os
 from typing import Any, Optional
 import aiofiles, aiohttp
-from pycloudmusic import CHUNK_SIZE, DOWNLOAD_PATH, LIMIT, RECONNECTION
 
-
-# music163通用请求头
-MUSIC_HEADERS = {
-    'Accept': '*/*',
-    'Accept-Language': 'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
-    'Connection': 'keep-alive',
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'Referer': 'http://music.163.com',
-    'Host': 'music.163.com',
-    'cookie': "appver=2.7.1.198277; os=pc;",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
-}
 
 __session = None
 
+
 async def get_session():
+    from pycloudmusic import LIMIT
+
     global __session
     if __session is None:
         conn = aiohttp.TCPConnector(limit=LIMIT)
@@ -37,7 +27,11 @@ class Http:
         self, 
         headers: Optional[dict[str, str]] = None
     ) -> None:
-        self._headers = headers if not headers is None else MUSIC_HEADERS
+        if headers is None:
+            from pycloudmusic import MUSIC_HEADERS
+            self._headers = MUSIC_HEADERS
+        else:
+            self._headers = headers
 
     async def _post_url(
         self, 
@@ -45,6 +39,9 @@ class Http:
         data: Optional[dict[str, Any]] = None, 
         reconnection_count: int=0
     ) -> dict[str, Any]:
+        """post 请求"""
+        from pycloudmusic import RECONNECTION
+
         try:
             session = await get_session()
             async with session.post(url, headers=self._headers, data=data) as req:
@@ -61,6 +58,7 @@ class Http:
         path: str, 
         data: Optional[dict[str, Any]] = None
     ) -> dict[str, Any]:
+        """post 请求 api 路径"""
         return await self._post_url(f"https://music.163.com{path}", data)
 
     async def _download(
@@ -70,7 +68,11 @@ class Http:
         file_path: Optional[str] = None, 
         reconnection_count: int = 0
     ) -> str:
+        """下载文件"""
+        from pycloudmusic import RECONNECTION, CHUNK_SIZE
+
         if file_path is None:
+            from pycloudmusic import DOWNLOAD_PATH
             file_path = DOWNLOAD_PATH
         
         if not os.path.isdir(file_path):

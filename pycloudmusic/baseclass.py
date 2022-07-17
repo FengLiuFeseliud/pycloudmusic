@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
-import json
 from typing import Any, Optional, Union
 from pycloudmusic.ahttp import Http
+import json
 
 
 class Api(Http, metaclass=ABCMeta):
+    """Api"""
 
     def __init__(
         self, 
@@ -14,14 +15,15 @@ class Api(Http, metaclass=ABCMeta):
 
     def __str__(self) -> str:
         """格式化输出类属性"""
+        from pycloudmusic import NOT_PRINT_OBJECT_DICT
         str_ = super().__repr__().rsplit(">", maxsplit=1)[0]
 
         values = list(self.__dict__.values())
         for key, item in enumerate(self.__dict__):
             key_value = values[key]
             if type(key_value) in [list, dict]:
-                # 不输出 self.music_list 详细
-                if item == "music_list":
+                # 不输出 NOT_PRINT_OBJECT_DICT 中指定的列表详细
+                if item in NOT_PRINT_OBJECT_DICT:
                     key_value = f"dataItem * {len(key_value)}"
                 else:
                     key_value = json.dumps(key_value, indent=6)
@@ -30,6 +32,7 @@ class Api(Http, metaclass=ABCMeta):
 
 
 class DataObject(Api, metaclass=ABCMeta):
+    """所有 DataObject 必须可以收藏/查询相似"""
 
     def __init__(
         self, 
@@ -43,20 +46,17 @@ class DataObject(Api, metaclass=ABCMeta):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        """
-        对像 收藏/取消收藏
-        """
+        """对像 收藏/取消收藏"""
         pass
 
     @abstractmethod
     async def similar(self) -> Any:
-        """
-        该对象的相似
-        """
+        """该对象的相似"""
         pass
 
 
 class ListObject(metaclass=ABCMeta):
+    """所有 ListObject 必须可以迭代"""
 
     def __init__(self) -> None:
         self.music_list: list = []
@@ -77,6 +77,8 @@ class ListObject(metaclass=ABCMeta):
 
 
 class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
+    """所有 DataListObject 必须可以收藏/查询相似
+    并且有数据可以迭代生成对象"""
 
     def __init__(
         self, 
@@ -91,6 +93,7 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
 
 class CommentObject(Api):
+    """基本评论功能"""
 
     def __init__(
         self, 
@@ -106,9 +109,7 @@ class CommentObject(Api):
         limit: int = 20,
         before_time: int = 0
     ) -> dict[str, Any]:
-        """
-        该对象的评论
-        """
+        """该对象的评论"""
         pass
 
     @abstractmethod
@@ -118,9 +119,7 @@ class CommentObject(Api):
         page: int = 0,
         limit: int = 20
     ) -> dict[str, Any]:
-        """
-        楼层评论
-        """
+        """楼层评论"""
         pass
 
     @abstractmethod
@@ -129,9 +128,7 @@ class CommentObject(Api):
         comment_id: Union[str, int], 
         in_: bool
     ) -> dict[str, Any]:
-        """
-        评论点赞
-        """
+        """评论点赞"""
         pass
 
     @abstractmethod
@@ -139,9 +136,7 @@ class CommentObject(Api):
         self, 
         content: str
     ) -> dict[str, Any]:
-        """
-        发送评论
-        """
+        """发送评论"""
         pass
 
     @abstractmethod
@@ -149,9 +144,7 @@ class CommentObject(Api):
         self, 
         comment_id: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        删除评论
-        """
+        """删除评论"""
         pass
 
     @abstractmethod
@@ -160,7 +153,5 @@ class CommentObject(Api):
         comment_id: Union[str, int], 
         content: str
     ) -> dict[str, Any]:
-        """
-        回复评论
-        """
+        """回复评论"""
         pass

@@ -140,9 +140,7 @@ class _Music(DataObject, Music163Comment):
         page: int = 0, 
         limit: int = 50
     ) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
-        """
-        该 music 对象的相似歌单
-        """
+        """该 music 对象的相似歌单"""
         data = await self._post("/api/discovery/simiPlaylist", {
             "songid": self.id, 
             "limit": limit, 
@@ -159,9 +157,7 @@ class _Music(DataObject, Music163Comment):
         page: int = 0, 
         limit: int = 50
     ) -> Union[Generator["User", None, None], dict[str, Any]]:
-        """
-        最近5个听了这 music 对象的用户
-        """
+        """最近5个听了这 music 对象的用户"""
         data = await self._post("/api/discovery/simiUser", {
             "songid": self.id, 
             "limit": limit, 
@@ -177,9 +173,7 @@ class _Music(DataObject, Music163Comment):
         self, 
         like: bool = True
     ) -> dict[str, Any]:
-        """
-        红心该music对象与取消红心
-        """
+        """红心该 music 对象与取消红心"""
         return await self._post("/api/radio/like", {
             "alg": 'itembased', 
             "trackId": self.id, 
@@ -188,9 +182,7 @@ class _Music(DataObject, Music163Comment):
         })
 
     async def lyric(self) -> dict[str, Any]:
-        """
-        该music对象的歌词
-        """
+        """该 music 对象的歌词"""
         return await self._post("/api/song/lyric", {
             "id": self.id, 
             "lv": -1, 
@@ -202,9 +194,7 @@ class _Music(DataObject, Music163Comment):
         self, 
         quality = None
     ) -> dict[str, Any]:
-        """
-        获取播放该 music 对象指定的歌曲文件 url
-        """
+        """获取播放该 music 对象指定的歌曲文件 url"""
         return await self._post_url("https://interface3.music.163.com/api/song/enhance/player/url", {
             "ids": f'[{self.id}]',
             "br": self.quality[quality]['br'] if quality is not None else 999000
@@ -214,9 +204,7 @@ class _Music(DataObject, Music163Comment):
         self, 
         quality = None
     ) -> dict[str, Any]:
-        """
-        下载该 music 对象指定的歌曲, 错误码 -105 需要会员
-        """
+        """获取该 music 对象指定的歌曲 url, 错误码 -105 需要会员"""
         return await self._post("/api/song/enhance/download/url", {
             "id": self.id,
             "br": self.quality[quality]['br'] if quality is not None else 999000
@@ -227,9 +215,7 @@ class _Music(DataObject, Music163Comment):
         quality = None, 
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
-        """
-        获取播放该 music 对象指定的歌曲文件
-        """
+        """获取播放该 music 对象指定的歌曲文件"""
         data = await self._play_url(quality)
         if data["code"] != 200:
             return data
@@ -241,9 +227,7 @@ class _Music(DataObject, Music163Comment):
         quality = None, 
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
-        """
-        获取下载该 music 对象指定的歌曲文件
-        """
+        """获取下载该 music 对象指定的歌曲文件"""
         data = await self._download_url(quality)
         if data["code"] != 200 or data["data"]["code"] == -105:
             return data
@@ -251,17 +235,13 @@ class _Music(DataObject, Music163Comment):
         return await self._download(data["data"]["url"], f"{self.id}.mp3", download_path)
 
     async def album(self) -> Union["Album", dict[str, Any]]:
-        """
-        实例化该对像专辑 album 对像并返回 album 对像
-        """
+        """实例化该对像专辑 album 对像并返回 album 对像"""
         from pycloudmusic.music163 import Music163Api
         
         return await Music163Api(headers=self._headers).album(self.album_data["id"])
 
     async def mv(self) -> Union["Mv", dict[str, Any]]:
-        """
-        获取该对像 mv 实例化 mv 对像并返回 mv 对像
-        """
+        """获取该对像 mv 实例化 mv 对像并返回 mv 对像"""
         from pycloudmusic.music163 import Music163Api
 
         return await Music163Api(headers=self._headers).mv(self.mv_id)
@@ -293,7 +273,13 @@ class Music(_Music):
         else:
             self.album_str = self.album_data["name"]
         # 所有音质
-        self.quality = {3: music_data["h"], 2: music_data["m"], 1: music_data["l"]}
+        self.quality = {
+            "h": music_data["h"],
+            "m": music_data["m"],
+            "l": music_data["l"],
+            "sq": music_data["sq"],
+            "hr": music_data["hr"],
+        }
         # mv id
         self.mv_id = music_data["mv"]
         # 发表时间
@@ -301,7 +287,8 @@ class Music(_Music):
             self.publish_time = music_data["publishTime"]
         else:
             self.publish_time = None
-
+        # 推荐理由
+        self.reason = music_data["reason"] if "reason" in music_data else None
 
 class _PlayList(DataListObject, Music163Comment):
 
@@ -326,6 +313,24 @@ class _PlayList(DataListObject, Music163Comment):
     
     async def similar(self) -> Any:
         raise TypeError("无法直接获取相似 请通过歌曲/该对象不支持获取相似")
+
+    async def subscribers(
+        self, 
+        page: int=0, 
+        limit: int=20
+    ) -> Union[Generator["User", None, None], dict[str, Any]]:
+        """
+        查看歌单收藏者
+        """
+        data = await self._post("/api/playlist/subscribers", {
+            "id": self.id, "limit": limit, "offset": page * limit
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return (User(self._headers, user_data) for user_data in data['subscribers'])
+
 
 class PlayList(_PlayList):
 
@@ -360,6 +365,36 @@ class PlayList(_PlayList):
         # 歌单歌曲
         self.music_list = playlist_data["tracks"]
 
+    async def add(
+        self, 
+        music_id: Union[str, int, list[Union[str, int]]]
+    ) -> dict[str, Any]:
+        """
+        向对像添加歌曲
+        """
+        music_id = [str(music_id)] if type(music_id) != list else music_id
+        return await self._post("/api/playlist/manipulate/tracks", {
+            "op": "add", 
+            "pid": self.id, 
+            "trackIds": str(music_id), 
+            "imme": "true"
+        })
+
+    async def del_(
+        self, 
+        music_id: Union[str, int, list[Union[str, int]]]
+    ) -> dict[str, Any]:
+        """
+        向对像删除歌曲
+        """
+        music_id = [str(music_id)] if type(music_id) != list else music_id
+        return await self._post("/api/playlist/manipulate/tracks", {
+            "op": "del", 
+            "pid": self.id, 
+            "trackIds": str(music_id), 
+            "imme": "true"
+        })
+
 
 class ShortPlayList(_PlayList):
 
@@ -385,6 +420,8 @@ class ShortPlayList(_PlayList):
         # 歌单创建时间
         self.create_time = playlist_data["createTime"]
         self.track_count = playlist_data["trackCount"]
+        # 推荐理由
+        self.reason = playlist_data["copywriter"] if "copywriter" in playlist_data else None
     
     def __next__(self) -> NoReturn:
         raise TypeError("ShortPlayList 并非一个完整的 PlayList , 请用 ShortPlayList 的歌单 id 请求一个完整的 PlayList 实例, 来得到歌单曲目")
@@ -426,9 +463,7 @@ class User(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[Generator[PlayList, None, None], dict[str, Any]]:
-        """
-        获取该对象的歌单
-        """
+        """获取该对象的歌单"""
         data = await self._post("/api/user/playlist", {
             "uid": self.id, 
             "limit": limit, 
@@ -442,9 +477,7 @@ class User(Api):
         return (PlayList(self._headers, playlist_data) for playlist_data in data['playlist'])
 
     async def like_music(self) -> Union[PlayList, dict[str, Any]]:
-        """
-        获取该对象喜欢的歌曲
-        """
+        """获取该对象喜欢的歌曲"""
         from pycloudmusic.music163 import Music163Api
 
         like_playlist_id = await self._get_like_playlist_id()
@@ -454,9 +487,7 @@ class User(Api):
         self, 
         type_: bool = True
     ) -> Union[Generator[Music, None, None], dict[str, Any]]:
-        """
-        获取该对象听歌榜单
-        """
+        """获取该对象听歌榜单"""
         data = await self._post("/api/v1/play/record", {
             "uid": self.id, "type": 0 if type_ else 1
         })
@@ -467,9 +498,7 @@ class User(Api):
         return (Music(self._headers, music_data) for music_data in (data["allData"] if type_ else data["weekData"]))
 
     async def follow(self, follow_in: bool=True):
-        """
-        关注用户
-        """
+        """关注用户"""
         follow_in_ = "follow" if follow_in else "delfollow"
         return await self._post(f"/api/user/{follow_in_}/{self.id}")
 
@@ -583,9 +612,7 @@ class _Mv(DataObject, Music163Comment):
         self, 
         quality: Union[str, int] = 1080
     ) -> dict[str, Any]:
-        """
-        获取播放该 mv 对象指定的视频 url
-        """
+        """获取播放该 mv 对象指定的视频 url"""
         return await self._post("/api/song/enhance/play/mv/url", {
             "id": self.id, "r": quality
         })
@@ -595,9 +622,7 @@ class _Mv(DataObject, Music163Comment):
         download_path: Optional[str] = None, 
         quality: Union[str, int] = 1080
     ) -> Union[str, dict[str, Any]]:
-        """
-        获取播放该 mv 对象指定的视频文件
-        """
+        """获取播放该 mv 对象指定的视频文件"""
         data = await self._play_url(quality)
 
         if data["code"] != 200:
@@ -692,9 +717,7 @@ class _Artist(DataObject):
         page: int = 0, 
         limit: int = 100
     ) -> Union[Generator[Music, None, None], dict[str, Any]]:
-        """
-        获取该对像歌曲
-        """
+        """获取该对像歌曲"""
         data = await self._post("/api/v1/artist/songs", {
             "id": self.id,
             "order": 'hot' if hot else "time",
@@ -710,9 +733,7 @@ class _Artist(DataObject):
         return (Music(self._headers, music_data) for music_data in data['songs'])
 
     async def song_top(self) -> Union[Generator[Music, None, None], dict[str, Any]]:
-        """
-        获取该对像热门50首
-        """
+        """获取该对像热门50首"""
         data = await self._post("/api/artist/top/song", {
             "id": self.id
         })
@@ -727,9 +748,7 @@ class _Artist(DataObject):
         page: int = 0,
         limit: int = 30
     ) -> Union[Generator[Album, None, None], dict[str, Any]]:
-        """
-        获取该对像专辑
-        """
+        """获取该对像专辑"""
         data = await self._post("/api/artist/albums/%s" % self.id, {
             "limit": limit, "offset": limit * page, "total": True,
         })
@@ -847,9 +866,7 @@ class _Dj(DataListObject):
         limit: int= 30, 
         asc: bool = False
     ) -> dict[str, Any]:
-        """
-        获取电台节目
-        """
+        """获取电台节目"""
         data = await self._post("/api/dj/program/byradio", {
             "radioId": self.id, "limit": limit, "offset": limit * page, "asc": asc
         })
@@ -996,9 +1013,7 @@ class Fm(Api, ListObject):
         return FmMusic(self._headers, super().__next__())
 
     async def read(self):
-        """
-        获取fm歌曲
-        """
+        """获取fm歌曲"""
         data = await self._post("/api/v1/radio/get")
 
         if data["code"] != 200:
@@ -1011,9 +1026,7 @@ class Fm(Api, ListObject):
         self, 
         id_: Union[int, str]
     ) -> dict[str, Any]:
-        """
-        将歌曲扔进垃圾桶 (优化推荐)
-        """
+        """将歌曲扔进垃圾桶 (优化推荐)"""
         return await self._post("/api/radio/trash/add?alg=RT&songId=%s&time=%s" % (id_, int(time.time())), {
             "songId": id_
         })
@@ -1034,9 +1047,7 @@ class Message(Api):
         before_time: int = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取评论
-        """
+        """获取评论"""
         return await self._post(f"/api/v1/user/comments/{self.id}", {
             "beforeTime": before_time, 
             "limit": limit, 
@@ -1049,9 +1060,7 @@ class Message(Api):
         page: int = 0, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取@我
-        """
+        """获取@我"""
         return await self._post("/api/forwards/get", {
             "offset": limit * page, 
             "limit": limit, 
@@ -1063,18 +1072,14 @@ class Message(Api):
         last_time: int = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取通知
-        """
+        """获取通知"""
         return await self._post("/api/msg/notices", {
             "limit": limit, 
             "time": last_time
         })
 
     async def private_new(self) -> dict[str, Any]:
-        """
-        获取最接近联系人
-        """
+        """获取最接近联系人"""
         return await self._post("/api/msg/recentcontact/get")
 
     async def private_history(
@@ -1083,9 +1088,7 @@ class Message(Api):
         page: int = 0, 
         limit: int = 30, 
     ) -> dict[str, Any]:
-        """
-        获取指定用户历史私信
-        """
+        """获取指定用户历史私信"""
         return await self._post("/api/msg/private/history", {
             "userId": id_, 
             "offset": limit * page, 
@@ -1098,9 +1101,7 @@ class Message(Api):
         page: int = 0, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取私信列表
-        """
+        """获取私信列表"""
         return await self._post("/api/msg/private/users", {
             "offset": limit * page, 
             "limit": limit, 
@@ -1121,9 +1122,7 @@ class Message(Api):
         msg: str, 
         to_user_id: Union[int, str, list[Union[int, str]]]
     ) -> dict[str, Any]:
-        """
-        发送私信
-        """
+        """发送私信"""
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
             "type": "text", 
@@ -1136,9 +1135,7 @@ class Message(Api):
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
     ) -> dict[str, Any]:
-        """
-        发送私信 带歌曲 id_:歌曲 id
-        """
+        """发送私信 带歌曲 id_:歌曲 id"""
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
             "type": "song", 
@@ -1152,9 +1149,7 @@ class Message(Api):
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
     ) -> dict[str, Any]:
-        """
-        发送私信 带专辑 id_:专辑 id
-        """
+        """发送私信 带专辑 id_:专辑 id"""
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
             "type": "album", 
@@ -1168,9 +1163,7 @@ class Message(Api):
         to_user_id: Union[int, str, list[Union[int, str]]],
         id_: Union[int, str]
     ) -> dict[str, Any]:
-        """
-        发送私信 带歌单 不能发送重复的歌单 id_:歌单 id
-        """
+        """发送私信 带歌单 不能发送重复的歌单 id_:歌单 id"""
         return await self._post("/api/msg/private/send", {
             "msg": msg, 
             "type": "playlist", 
@@ -1217,9 +1210,7 @@ class EventItem(Music163Comment):
         self, 
         msg: str
     ) -> dict[str, Any]:
-        """
-        指定动态转发到 cookie 用户
-        """
+        """指定动态转发到 cookie 用户"""
         return await self._post("/api/event/forward", {
             "forwards": msg, 
             "id": self.id, 
@@ -1243,9 +1234,7 @@ class Event(Api, ListObject):
         last_time: Union[str, int] = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取下一页动态
-        """
+        """获取下一页动态"""
         data = await self._post("/api/v1/event/get", {
             "pagesize": limit, 
             "lasttime": last_time
@@ -1263,9 +1252,7 @@ class Event(Api, ListObject):
         last_time: Union[str, int] = -1, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """
-        获取指定用户动态
-        """
+        """获取指定用户动态"""
         data = await self._post(f"/api/event/get{user_id}", {
             "limit": limit, 
             "time": last_time, 
@@ -1283,9 +1270,7 @@ class Event(Api, ListObject):
         self, 
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        删除 cookie 用户动态
-        """
+        """删除 cookie 用户动态"""
         return await self._post("/api/event/delete", {
             "id": id_
         })
@@ -1294,9 +1279,7 @@ class Event(Api, ListObject):
         self,
         msg: str
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态
-        """
+        """使用 cookie 用户发送动态"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": "", 
@@ -1308,9 +1291,7 @@ class Event(Api, ListObject):
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态 带歌曲 id_:歌曲 id
-        """
+        """使用 cookie 用户发送动态 带歌曲 id_:歌曲 id"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": id_, 
@@ -1322,9 +1303,7 @@ class Event(Api, ListObject):
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态 带歌单 id_:歌单 id
-        """
+        """使用 cookie 用户发送动态 带歌单 id_:歌单 id"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": id_, 
@@ -1336,9 +1315,7 @@ class Event(Api, ListObject):
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态 带 mv id_:mv id
-        """
+        """使用 cookie 用户发送动态 带 mv id_:mv id"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": id_, 
@@ -1350,9 +1327,7 @@ class Event(Api, ListObject):
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态 带电台 id_:电台 id
-        """
+        """使用 cookie 用户发送动态 带电台 id_:电台 id"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": id_, 
@@ -1364,9 +1339,7 @@ class Event(Api, ListObject):
         msg: str,
         id_: Union[str, int]
     ) -> dict[str, Any]:
-        """
-        使用 cookie 用户发送动态 带电台节目 id_:电台节目 id
-        """
+        """使用 cookie 用户发送动态 带电台节目 id_:电台节目 id"""
         return await self._post("/api/share/friends/resource", {
             "msg": msg, 
             "id": id_, 
@@ -1435,17 +1408,13 @@ class My(User):
         self, 
         type_: bool = True
     ) -> dict[str, Any]:
-        """
-        使用该对象签到
-        """
+        """使用该对象签到"""
         return await self._post("/api/point/dailyTask", {
             "type": 0 if type_ else 1
         })
 
     async def recommend_songs(self) -> Union[Generator[Music, None, None], dict[str, Any]]:
-        """
-        获取日推
-        """
+        """获取日推"""
         data = await self._post("/api/v3/discovery/recommend/songs")
         
         if data["code"] != 200:
@@ -1454,9 +1423,7 @@ class My(User):
         return (Music(self._headers, music_data) for music_data in data["data"]["dailySongs"])
 
     async def recommend_resource(self) -> Union[Generator[ShortPlayList, None, None], dict[str, Any]]:
-        """
-        获取每日推荐歌单
-        """
+        """获取每日推荐歌单"""
         data = await self._post("/api/v1/discovery/recommend/resource")
         
         if data["code"] != 200:
@@ -1470,9 +1437,7 @@ class My(User):
         sid: Optional[Union[str, int]] = None, 
         playlist_id: Optional[Union[str, int]] = None
     ) -> Union[Generator[Music, None, None], dict[str, Any]]:
-        """
-        心动模式/智能播放
-        """
+        """心动模式/智能播放"""
         if playlist_id is None:
             playlist_id = await self._get_like_playlist_id()
 
@@ -1494,9 +1459,7 @@ class My(User):
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
-        """
-        查看 cookie 用户收藏的歌手
-        """
+        """查看 cookie 用户收藏的歌手"""
         data = await self._post("/api/artist/sublist", {
             "limit": limit, 
             "offset": page * limit, 
@@ -1513,9 +1476,7 @@ class My(User):
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
-        """
-        查看 cookie 用户收藏的专辑
-        """
+        """查看 cookie 用户收藏的专辑"""
         data = await self._post("/api/album/sublist", {
             "limit": limit, 
             "offset": page * limit, 
@@ -1532,9 +1493,7 @@ class My(User):
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortDj, None, None]], dict[str, Any]]:
-        """
-        查看 cookie 用户收藏的电台
-        """
+        """查看 cookie 用户收藏的电台"""
         data = await self._post("/api/djradio/get/subed", {
             "limit": limit, 
             "offset": page * limit, 
@@ -1551,9 +1510,7 @@ class My(User):
         page: int = 0, 
         limit: int = 25
     ) -> Union[tuple[int, Generator[ShortMv, None, None]], dict[str, Any]]:
-        """
-        查看 cookie 用户收藏的 MV
-        """
+        """查看 cookie 用户收藏的 MV"""
         data = await self._post("/api/cloudvideo/allvideo/sublist", {
             "limit": limit, 
             "offset": page * limit, 
@@ -1570,9 +1527,7 @@ class My(User):
         page: int = 0, 
         limit: int = 50
     ) -> dict[str, Any]:
-        """
-        查看 cookie 用户收藏的专题
-        """
+        """查看 cookie 用户收藏的专题"""
         data = await self._post("/api/topic/sublist", {
             "limit": limit, 
             "offset": page * limit, 
@@ -1585,21 +1540,15 @@ class My(User):
         return data
 
     def fm(self) -> Fm:
-        """
-        私人 fm 实例化一个 fm 对象并返回
-        """
+        """私人 fm 实例化一个 fm 对象并返回"""
         return Fm(self._headers)
 
     def message(self) -> Message:
-        """
-        私信 实例化一个 message 对象并返回
-        """
+        """私信 实例化一个 message 对象并返回"""
         return Message(self._headers, self.id)
 
     def event(self) -> Event:
-        """
-        动态 实例化一个 event 对象并返回
-        """
+        """动态 实例化一个 event 对象并返回"""
         return Event(self._headers)
 
     async def cloud(
@@ -1607,9 +1556,7 @@ class My(User):
         page: int = 0, 
         limit: int = 30
     ) -> Union[Cloud, dict[str, Any]]:
-        """
-        获取云盘数据并实例化一个 cloud 对象返回
-        """
+        """获取云盘数据并实例化一个 cloud 对象返回"""
         data = await self._post("/api/v1/cloud/get", {
             'limit': limit, 'offset': page * limit
         })
