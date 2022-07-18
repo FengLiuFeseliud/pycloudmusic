@@ -11,6 +11,8 @@ pycloudmusic 是异步高性能的 Python 音乐 API 库
 
 [基于 NeteaseCloudMusicApi 改写](https://github.com/Binaryify/NeteaseCloudMusicApi)
 
+[项目文档: https://docs.sakuratools.top/pycloudmusic/](https://docs.sakuratools.top/pycloudmusic/) | [打不开时候备用: https://github.com/FengLiuFeseliud/pycloudmusic.docs](https://github.com/FengLiuFeseliud/pycloudmusic.docs)
+
 # 快速入门
 
 ## 安装
