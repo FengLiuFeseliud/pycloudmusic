@@ -40,14 +40,22 @@ class Music163CommentItem(CommentItemObject):
         comment_data: dict[str, Any]
     ) -> None:
         super().__init__(headers, comment_data)
+        # 评论 id
         self.id = comment_data["commentId"]
+        # 资源 id 
         self.thread_id =  comment_data["threadId"]
+        # 用户 id
         self.user = comment_data["user"]
+        # 用户名
         self.user_str = comment_data["user"]["nickname"]
+        # 评论内容
         self.content = comment_data["content"]
+        # 评论时间
         self.time = comment_data["time"]
         self.time_str = comment_data["timeStr"]
+        # 评论点赞数
         self.liked_count = comment_data["likedCount"]
+        # 是否点赞了该评论
         self.liked = comment_data["liked"]
 
     async def floors(
