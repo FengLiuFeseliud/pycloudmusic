@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 """
-打包指令: python setup.py sdist
+打包指令: python3 setup.py sdist
 twine upload dist/*
 """
 
@@ -10,8 +10,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="pycloudmusic",
-    version="0.1.0",
-    description="使用 Python 快速异步的调用音乐 api",
+    version="0.1.1",
+    description="优雅的异步高性能 Python 音乐 API 库",
+    keywords=[
+        "cloudmusic",
+        "asyncio",
+        "netease-cloud-music",
+        "netease",
+        "api"
+    ],
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
