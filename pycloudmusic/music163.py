@@ -9,9 +9,7 @@ from pycloudmusic.object.music163 import *
 
 
 class Music163Api(Api):
-    """
-    出现-460错误 尝试再cookie加上 "appver=2.7.1.198277; os=pc;"
-    """
+    """出现-460错误 尝试再cookie加上 "appver=2.7.1.198277; os=pc;" """
 
     def __init__(
         self, 
@@ -23,10 +21,7 @@ class Music163Api(Api):
             self._headers["Cookie"] = cookies
 
     async def my(self) -> Union[My, dict[str, Any]]:
-        """
-        获取当前cookie用户信息并实例化my对像\n
-        cookie无效返回200
-        """
+        """获取当前cookie用户信息并实例化my对像, cookie无效返回200"""
         data = await self._post("/api/w/nuser/account/get")
         if data["code"] != 200 or data["profile"] is None:
             return data
@@ -37,9 +32,7 @@ class Music163Api(Api):
         self, 
         ids: Union[int, str, list[Union[str, int]]]
     ) -> Union[Music, Generator[Music, None, None], dict[str, Any]]:
-        """
-        获取歌曲并实例化music对像
-        """
+        """获取歌曲并实例化music对像"""
         data = await self._post("/api/v3/song/detail", {
             "c": _id_format(ids, dict_str=True)
         })
@@ -55,9 +48,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[User, dict[str, Any]]:
-        """
-        获取用户并实例化user对像
-        """
+        """获取用户并实例化user对像"""
         data = await self._post(f"/api/v1/user/detail/{id_}")
 
         if data["code"] != 200:
@@ -69,9 +60,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[PlayList, dict[str, Any]]:
-        """
-        获取歌单并实例化playlist对像
-        """
+        """获取歌单并实例化playlist对像"""
         data = await self._post("/api/v6/playlist/detail", {
             "id": id_, 
             "n": 100000
@@ -86,9 +75,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[Artist, dict[str, Any]]:
-        """
-        获取歌手并实例化artist对像
-        """
+        """获取歌手并实例化artist对像"""
         data = await self._post("/api/artist/head/info/get", {
             "id": id_
         })
@@ -102,9 +89,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[Album, dict[str, Any]]:
-        """
-        实例化专辑album对像
-        """
+        """实例化专辑album对像"""
         data = await self._post(f"/api/v1/album/{id_}")
 
         if data["code"] != 200:
@@ -116,9 +101,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[Mv, dict[str, Any]]:
-        """
-        获取mv并实例化mv对像
-        """
+        """获取mv并实例化mv对像"""
         data = await self._post("/api/v1/mv/detail", {
             "id": id_
         })
@@ -132,9 +115,7 @@ class Music163Api(Api):
         self, 
         id_: Union[int, str]
     ) -> Union[Dj, dict[str, Any]]:
-        """
-        获取电台并实例化dj对像
-        """
+        """获取电台并实例化dj对像"""
         data = await self._post("/api/djradio/v2/get", {
             "id": id_
         })
@@ -143,6 +124,118 @@ class Music163Api(Api):
             return data
 
         return Dj(self._headers, data["data"])
+
+
+    async def search(
+        self, 
+        key: str, 
+        type_: Union[str, int] = 1, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """搜索
+        type_: 
+        1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户
+        1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频"""
+        data = await self._post("/api/cloudsearch/pc", {
+            "s": key, 
+            "type": type_, 
+            "limit": limit, 
+            "offset": limit * page, 
+            "total": True
+        })
+        
+        if data["code"] != 200:
+            return data
+
+        return data['result']
+    
+    async def personalized_playlist(
+        self, 
+        limit: int = 30
+    ) -> dict[str, Any]:
+        """推荐歌单"""
+        data = await self._post("/api/personalized/playlist", {
+            "limit": limit, 
+            "total": "true", 
+            "n": 1000,
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data['result']
+    
+    async def personalized_new_song(
+        self, 
+        limit: int = 10
+    ) -> dict[str, Any]:
+        """推荐新歌"""
+        data = await self._post("/api/personalized/newsong", {
+            "type": 'recommend', 
+            "limit": limit, 
+            "areaId": 0,
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data['result']
+    
+    async def personalized_dj(self) -> dict[str, Any]:
+        """推荐电台"""
+        data = await self._post("/api/personalized/djprogram")
+
+        if data["code"] != 200:
+            return data
+
+        return data['result']
+    
+    async def home_page(
+        self, 
+        refresh: bool = True, 
+        cursor: Optional[str] = None
+    ) -> dict[str, Any]:
+        """首页-发现 app 主页信息"""
+        return await self._post("/api/homepage/block/page", {
+            "refresh": refresh, 
+            "cursor": cursor
+        })
+
+    async def top_artist_list(
+        self, 
+        type_: Union[str, int] = 1, 
+        page: int = 0, 
+        limit: int = 100
+    ) -> dict[str, Any]:
+        """歌手榜
+        type_ 1: 华语, 2: 欧美, 3: 韩国, 4: 日本"""
+        data = await self._post("/api/toplist/artist", {
+            "type": type_, 
+            "limit": limit, 
+            "offset": page * limit, 
+            "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["list"]["artists"]
+
+    async def top_song(
+        self, 
+        type_: int = 0
+    ) -> dict[str, Any]:
+        """新歌速递
+        全部:0 华语:7 欧美:96 日本:8 韩国:16"""
+        data = await self._post("/api/v1/discovery/new/songs", {
+            "areaId": type_, "total": "true"
+        })
+
+        if data["code"] != 200:
+            return data
+            
+        return data["data"]
 
 
 class LoginMusic163(Api):

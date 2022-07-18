@@ -497,7 +497,10 @@ class User(Api):
 
         return (Music(self._headers, music_data) for music_data in (data["allData"] if type_ else data["weekData"]))
 
-    async def follow(self, follow_in: bool=True):
+    async def follow(
+        self, 
+        follow_in: bool=True
+    ) -> dict[str, Any]:
         """关注用户"""
         follow_in_ = "follow" if follow_in else "delfollow"
         return await self._post(f"/api/user/{follow_in_}/{self.id}")

@@ -18,16 +18,15 @@ class Api(Http, metaclass=ABCMeta):
         from pycloudmusic import NOT_PRINT_OBJECT_DICT
         str_ = super().__repr__().rsplit(">", maxsplit=1)[0]
 
-        values = list(self.__dict__.values())
-        for key, item in enumerate(self.__dict__):
-            key_value = values[key]
+        for key in self.__dict__:
+            key_value = self.__dict__[key]
             if type(key_value) in [list, dict]:
                 # 不输出 NOT_PRINT_OBJECT_DICT 中指定的列表详细
-                if item in NOT_PRINT_OBJECT_DICT:
+                if key in NOT_PRINT_OBJECT_DICT:
                     key_value = f"dataItem * {len(key_value)}"
                 else:
                     key_value = json.dumps(key_value, indent=6)
-            str_ = f"{str_}\n    {item} = {key_value}"
+            str_ = f"{str_}\n    {key} = {key_value}"
         return f"{str_}\n>"
 
 

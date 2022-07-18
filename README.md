@@ -1,0 +1,132 @@
+# pycloudmusic
+
+pycloudmusic 是异步高性能的 Python 音乐 API 库
+
+开箱即用/简单/快速
+
+[基于 NeteaseCloudMusicApi 改写](https://github.com/Binaryify/NeteaseCloudMusicApi)
+
+# 快速入门
+
+## 安装
+
+使用 pip 即可安装 pycloudmusic
+
+```bash
+pip install pycloudmusic
+```
+
+## 输出对象
+
+pycloudmusic 下的所有对象被打印时都会格式化输出类所有变量， 方便查看对象数据
+
+```python
+from pycloudmusic import Music163Api
+import asyncio
+
+
+async def main():
+    musicapi = Music163Api()
+    # 获取歌曲 421531
+    # https://music.163.com/#/song?id=421531
+    music = await musicapi.music(421531)
+    # 打印歌曲信息
+    print(music)
+    print("=" * 50)
+
+asyncio.run(main())
+```
+
+## 可迭代对象
+
+pycloudmusic 下的部分对象可以被迭代使用
+
+如下获取歌单 PlayList 对象后可以直接 for in PlayList 对象， 将迭代返回按歌单曲目生成的 Music 对象
+
+```python
+from pycloudmusic import Music163Api
+import asyncio
+
+
+async def main():
+    musicapi = Music163Api()
+    # 获取歌单 7487291782
+    # https://music.163.com/#/playlist?id=7487291782
+    playlist = await musicapi.playlist(7487291782)
+    # 打印歌单信息
+    print(playlist)
+    print("=" * 50)
+
+    # 打印歌单曲目
+    for music in playlist:
+        print(music.name, music.artist_str, music.id)
+
+asyncio.run(main())
+```
+
+因此可以使用推导式快速生成 task 列表下载歌单曲目
+
+```python
+from pycloudmusic import Music163Api
+import asyncio
+
+
+async def main():
+    musicapi = Music163Api()
+    # 获取歌单 7487291782
+    # https://music.163.com/#/playlist?id=7487291782
+    playlist = await musicapi.playlist(7487291782)
+    # 创建任务
+    tasks = [asyncio.create_task(music.play()) for music in playlist]
+    # 等待任务
+    await asyncio.wait(tasks)
+
+asyncio.run(main())
+```
+
+## 模拟登录
+
+pycloudmusic 支持邮箱登录， 二维码登录， 手机密码登录， 手机验证码登录
+
+这里可以用邮箱登录长期保持 Cookie 有效性，邮箱登录不需要人为操作
+
+```python
+from pycloudmusic import LoginMusic163
+import asyncio
+
+
+async def main():
+    login = LoginMusic163()
+    # 邮箱登录
+    code, cookie, musicapi = await login.email("you login email", "you login password")
+    # 验证登录
+    print("=" * 60)
+    print(code, cookie, musicapi)
+    print("=" * 60)
+    print(await musicapi.my())
+
+asyncio.run(main())
+```
+
+## 评论
+
+pycloudmusic 支持网易云的所有评论， 对支持评论的对象使用 Music163Comment 的方法即可
+
+```python
+"""获取歌曲评论"""
+
+from pycloudmusic import Music163Api
+import asyncio
+
+
+async def main():
+    musicapi = Music163Api()
+    # 获取歌曲
+    # https://music.163.com/song?id=1486983140&userid=492346933
+    music = await musicapi.music(1486983140)
+    # 支持评论的对象都继承了 Music163Commen
+    # 按时间获取评论
+    print(await music.comment(hot=False))
+
+asyncio.run(main())
+```
