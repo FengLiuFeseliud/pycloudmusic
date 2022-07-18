@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Generator
 from pycloudmusic.ahttp import Http
 import json
 
@@ -91,6 +91,49 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
         return super().__next__()
 
 
+class CommentItemObject(Api):
+    """基本单评论"""
+
+    def __init__(
+        self, 
+        headers: Optional[dict[str, str]],
+        comment_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers)
+    
+    @abstractmethod
+    async def floors(
+        self, 
+        page: int = 0,
+        limit: int = 20
+    ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
+        """楼层评论"""
+        pass
+
+    @abstractmethod
+    async def reply(
+        self, 
+        content: str
+    ) -> dict[str, Any]:
+        """回复评论"""
+        pass
+
+    @abstractmethod
+    async def like(
+        self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
+        """评论点赞"""
+        pass
+
+    @abstractmethod
+    async def delete(
+        self, 
+    ) -> dict[str, Any]:
+        """删除评论"""
+        pass
+
+
 class CommentObject(Api):
     """基本评论功能"""
 
@@ -101,56 +144,20 @@ class CommentObject(Api):
         super().__init__(headers)
 
     @abstractmethod
-    async def comment(
+    async def comments(
         self, 
         hot: bool = True, 
         page: int = 0, 
         limit: int = 20,
         before_time: int = 0
-    ) -> dict[str, Any]:
+    ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
         """该对象的评论"""
         pass
 
     @abstractmethod
-    async def comment_floor(
-        self, 
-        comment_id: Union[str, int], 
-        page: int = 0,
-        limit: int = 20
-    ) -> dict[str, Any]:
-        """楼层评论"""
-        pass
-
-    @abstractmethod
-    async def comment_like(
-        self, 
-        comment_id: Union[str, int], 
-        in_: bool
-    ) -> dict[str, Any]:
-        """评论点赞"""
-        pass
-
-    @abstractmethod
-    async def comment_add(
+    async def comment_send(
         self, 
         content: str
     ) -> dict[str, Any]:
         """发送评论"""
-        pass
-
-    @abstractmethod
-    async def comment_delete(
-        self, 
-        comment_id: Union[str, int]
-    ) -> dict[str, Any]:
-        """删除评论"""
-        pass
-
-    @abstractmethod
-    async def comment_reply(
-        self, 
-        comment_id: Union[str, int], 
-        content: str
-    ) -> dict[str, Any]:
-        """回复评论"""
         pass

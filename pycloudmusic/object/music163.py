@@ -32,6 +32,71 @@ EVENT_TYPE = {
 }
 
 
+class Music163CommentItem(CommentItemObject):
+
+    def __init__(
+        self, 
+        headers: Optional[dict[str, str]], 
+        comment_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, comment_data)
+        self.id = comment_data["commentId"]
+        self.thread_id =  comment_data["threadId"]
+        self.user = comment_data["user"]
+        self.user_str = comment_data["user"]["nickname"]
+        self.content = comment_data["content"]
+        self.time = comment_data["time"]
+        self.time_str = comment_data["timeStr"]
+        self.liked_count = comment_data["likedCount"]
+        self.liked = comment_data["liked"]
+
+    async def floors(
+        self, 
+        page: int = 0, 
+        limit: int = 20
+    ) -> Union[tuple[int, Generator[CommentItemObject, None, None]], dict[str, Any]]:
+        data = await self._post("/api/resource/comment/floor/get", {
+            "parentCommentId": self.id, 
+            "threadId": self.thread_id, 
+            "limit": limit,
+            "offset": limit * page
+        })
+
+        if data["code"] != 200:
+            return data
+
+        return data["data"]["totalCount"], (Music163CommentItem(
+            self._headers, dict({"threadId": self.thread_id}, **comment_data)
+        ) for comment_data in data["data"]["comments"])
+
+    async def reply(
+        self,
+        content: str
+    ) -> dict[str, Any]:
+        return await self._post("/api/resource/comments/reply", {
+            "threadId": self.thread_id,
+            "commentId": self.id,
+            "content": content
+        })
+
+    async def like(
+        self, 
+        in_: bool = True
+    ) -> dict[str, Any]:
+        return await self._post("/api/v1/comment/%s" % ('like' if in_ else 'unlike'), {
+            "threadId": self.thread_id,
+            "commentId": self.id
+        })
+
+    async def delete(
+        self, 
+    ) -> dict[str, Any]:
+        return await self._post("/api/resource/comments/delete", {
+            "threadId": self.thread_id,
+            "commentId": self.id
+        })
+
+
 class Music163Comment(CommentObject):
 
     def __init__(
@@ -41,71 +106,41 @@ class Music163Comment(CommentObject):
         super().__init__(headers)
         self.data_type: Optional[str] = None
         self.id: Optional[int] = None
+        self.thread_id: Optional[str] = None
 
-    async def comment(
+    async def comments(
         self, 
         hot: bool = True, 
         page: int = 0, 
         limit: int = 20, 
         before_time: int = 0
-    ) -> dict[str, Any]:
+    ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
         api = "/api/v1/resource/hotcomments" if hot else "/api/v1/resource/comments"
-        return await self._post("%s/%s%s" % (api, self.data_type, self.id), {
+
+        data = await self._post("%s/%s%s" % (api, self.data_type, self.id), {
             "rid": self.id, 
             "limit": limit, 
             "offset": limit * page, 
             "beforeTime": before_time
         })
-    
-    async def comment_floor(
-        self, 
-        comment_id: Union[str, int], 
-        page: int = 0, 
-        limit: int = 20
-    ) -> dict[str, Any]:
-        return await self._post("/api/resource/comment/floor/get", {
-            "parentCommentId": comment_id, 
-            "threadId": "%s%s" % (self.data_type, self.id), 
-            "limit": limit,
-            "offset": limit * page
-        })
 
-    async def comment_like(
-        self, 
-        comment_id: Union[str, int], 
-        in_: bool
-    ) -> dict[str, Any]:
-        return await self._post("/api/v1/comment%s" % '/like' if in_ else '/unlike', {
-            "threadId": "%s%s" % (self.data_type, self.id),
-            "commentId": comment_id
-        })
+        if data["code"] != 200:
+            return data
 
-    async def comment_add(
+        if self.thread_id is None:
+            self.thread_id = f"{self.data_type}{self.id}"
+
+        comment_data_list = data["hotComments"] if "hotComments" in data else {}
+        return data["total"], (Music163CommentItem(
+            self._headers, dict({"threadId": self.thread_id}, **comment_data)
+        ) for comment_data in comment_data_list)
+
+    async def comment_send(
         self, 
         content: str
     ) -> dict[str, Any]:
         return await self._post("/api/resource/comments/add", {
-            "threadId": "%s%s" % (self.data_type, self.id),
-            "content": content
-        })
-    
-    async def comment_delete(
-        self, 
-        comment_id: Union[str, int]
-    ) -> dict[str, Any]:
-        return await self._post("/api/resource/comments/delete", {
-            "threadId": "%s%s" % (self.data_type, self.id),
-            "commentId": comment_id
-        })
-    
-    async def comment_reply(
-        self,
-        comment_id: Union[str, int], 
-        content: str
-    ) -> dict[str, Any]:
-        return await self._post("/api/resource/comments/reply", {
-            "threadId": "%s%s" % (self.data_type, self.id),
-            "commentId": comment_id,
+            "threadId": self.thread_id,
             "content": content
         })
 
@@ -307,7 +342,7 @@ class _PlayList(DataListObject, Music163Comment):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        return await self._post("/api/playlist%s" % '/subscribe' if in_ else '/unsubscribe', {
+        return await self._post("/api/playlist%s" % ('/subscribe' if in_ else '/unsubscribe'), {
             "id": self.id
         })
     
@@ -525,7 +560,7 @@ class _Album(DataListObject, Music163Comment):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        return await self._post("/api/album%s" % "/sub" if in_ else "/unsub", {
+        return await self._post("/api/album/%s" % ("sub" if in_ else "unsub"), {
             "id": self.id
         })
     
@@ -637,7 +672,7 @@ class _Mv(DataObject, Music163Comment):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        return await self._post("/api/mv%s" % "/sub" if in_ else "/unsub", {
+        return await self._post("/api/mv/%s" % ("sub" if in_ else "unsub"), {
             "mvId": self.id,
             "mvIds": '["' + str(self.id) + '"]',
         })
@@ -765,7 +800,7 @@ class _Artist(DataObject):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        return await self._post("/api/artist%s" % "/sub" if in_ else "/unsub", {
+        return await self._post("/api/artist/%s" % ("sub" if in_ else "unsub"), {
             "artistId": self.id,
             "artistIds": f'["{self.id}"]'
         })
@@ -884,7 +919,7 @@ class _Dj(DataListObject):
         self, 
         in_: bool = True
     ) -> dict[str, Any]:
-        return await self._post("/api/djradio%s" % "/sub" if in_ else "/unsub", {
+        return await self._post("/api/djradio/%s" % ("sub" if in_ else "unsub"), {
             "id": self.id
         })
 
