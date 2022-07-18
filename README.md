@@ -5,7 +5,7 @@
 ![stars](https://img.shields.io/github/stars/FengLiuFeseliud/pycloudmusic)
 ![license](https://img.shields.io/github/license/FengLiuFeseliud/pycloudmusic)
 
-pycloudmusic 是异步高性能的 Python 音乐 API 库
+**优雅的异步高性能 Python 音乐 API 库**
 
 开箱即用/简单/快速
 
