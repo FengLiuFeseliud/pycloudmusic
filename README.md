@@ -44,6 +44,10 @@ async def main():
 asyncio.run(main())
 ```
 
+此处数据为打印歌单对象
+
+![printobj.png](https://img.sakuratools.top/docs/pycloudmusic/printobj.png@0x0x0.8x80)
+
 ## 可迭代对象
 
 pycloudmusic 下的部分对象可以被迭代使用
