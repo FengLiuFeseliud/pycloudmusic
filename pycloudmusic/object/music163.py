@@ -1000,8 +1000,6 @@ class FmMusic(_Music):
         self.mv_id = music_data["mvid"]
         # 发表时间
         self.album_data["publishTime"]
-        # True时获取完成资源链接后直接返回(不进行下载)
-        self.not_download = False
 
 
 class Fm(Api, ListObject):
@@ -1015,7 +1013,7 @@ class Fm(Api, ListObject):
     def __next__(self) -> FmMusic:
         return FmMusic(self._headers, super().__next__())
 
-    async def read(self):
+    async def read(self) -> dict[str, Any]:
         """获取fm歌曲"""
         data = await self._post("/api/v1/radio/get")
 
@@ -1089,7 +1087,7 @@ class Message(Api):
         self, 
         id_: Union[str, int], 
         page: int = 0, 
-        limit: int = 30, 
+        limit: int = 30
     ) -> dict[str, Any]:
         """获取指定用户历史私信"""
         return await self._post("/api/msg/private/history", {
@@ -1195,7 +1193,7 @@ class EventItem(Music163Comment):
         self.act_name = event_data["actName"]
         # 动态类型
         self.type = event_data["type"]
-        self.type_str = EVENT_TYPE[self.type]
+        self.type_str = EVENT_TYPE[self.type] if self.type in EVENT_TYPE else None
         # 动态 id
         self.id = event_data['id']
         # 动态 id
@@ -1256,7 +1254,7 @@ class Event(Api, ListObject):
         limit: int = 30
     ) -> dict[str, Any]:
         """获取指定用户动态"""
-        data = await self._post(f"/api/event/get{user_id}", {
+        data = await self._post(f"/api/event/get/{user_id}", {
             "limit": limit, 
             "time": last_time, 
             "getcounts": "true", 
@@ -1266,7 +1264,7 @@ class Event(Api, ListObject):
         if data["code"] != 200:
             return data
 
-        self.music_list = data['event']
+        self.music_list = data['events']
         return data
 
     async def del_(
