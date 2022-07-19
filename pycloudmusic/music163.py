@@ -226,7 +226,7 @@ class Music163Api(Api):
     async def personalized_playlist(
         self, 
         limit: int = 30
-    ) -> dict[str, Any]:
+    ) -> Union[Generator[ShorterPlayList, None, None], dict[str, Any]]:
         """推荐歌单"""
         data = await self._post("/api/personalized/playlist", {
             "limit": limit, 
@@ -237,12 +237,12 @@ class Music163Api(Api):
         if data["code"] != 200:
             return data
 
-        return data['result']
+        return (ShorterPlayList(self._headers, playlist_data) for playlist_data in data['result'])
     
     async def personalized_new_song(
         self, 
         limit: int = 10
-    ) -> dict[str, Any]:
+    ) -> Union[Generator[PersonalizedMusic, None, None], dict[str, Any]]:
         """推荐新歌"""
         data = await self._post("/api/personalized/newsong", {
             "type": 'recommend', 
@@ -253,16 +253,16 @@ class Music163Api(Api):
         if data["code"] != 200:
             return data
 
-        return data['result']
+        return (PersonalizedMusic(self._headers, music_data["song"]) for music_data in data['result'])
     
-    async def personalized_dj(self) -> dict[str, Any]:
+    async def personalized_dj(self) -> Union[Generator[PersonalizedDj, None, None], dict[str, Any]]:
         """推荐电台"""
         data = await self._post("/api/personalized/djprogram")
 
         if data["code"] != 200:
             return data
 
-        return data['result']
+        return (PersonalizedDj(self._headers, music_data["program"]) for music_data in data['result'])
     
     async def home_page(
         self, 
@@ -280,7 +280,7 @@ class Music163Api(Api):
         type_: Union[str, int] = 1, 
         page: int = 0, 
         limit: int = 100
-    ) -> dict[str, Any]:
+    ) -> Union[Generator[Artist, None, None], dict[str, Any]]:
         """歌手榜
         type_ 1: 华语, 2: 欧美, 3: 韩国, 4: 日本"""
         data = await self._post("/api/toplist/artist", {
@@ -293,12 +293,12 @@ class Music163Api(Api):
         if data["code"] != 200:
             return data
 
-        return data["list"]["artists"]
+        return (Artist(self._headers, artist_data) for artist_data in data["list"]["artists"])
 
     async def top_song(
         self, 
         type_: int = 0
-    ) -> dict[str, Any]:
+    ) -> Union[Generator[PersonalizedMusic, None, None], dict[str, Any]]:
         """新歌速递
         全部:0 华语:7 欧美:96 日本:8 韩国:16"""
         data = await self._post("/api/v1/discovery/new/songs", {
@@ -308,7 +308,7 @@ class Music163Api(Api):
         if data["code"] != 200:
             return data
             
-        return data["data"]
+        return (PersonalizedMusic(self._headers, music_data) for music_data in data["data"])
 
 
 class LoginMusic163(Api):

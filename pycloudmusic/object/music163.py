@@ -235,31 +235,31 @@ class _Music(DataObject, Music163Comment):
 
     async def _play_url(
         self, 
-        quality = None
+        br: Union[int, str] = 999000
     ) -> dict[str, Any]:
         """获取播放该 music 对象指定的歌曲文件 url"""
         return await self._post_url("https://interface3.music.163.com/api/song/enhance/player/url", {
             "ids": f'[{self.id}]',
-            "br": self.quality[quality]['br'] if quality is not None else 999000
+            "br": br
         })
 
     async def _download_url(
         self, 
-        quality = None
+        br: Union[int, str] = 999000
     ) -> dict[str, Any]:
         """获取该 music 对象指定的歌曲 url, 错误码 -105 需要会员"""
         return await self._post("/api/song/enhance/download/url", {
             "id": self.id,
-            "br": self.quality[quality]['br'] if quality is not None else 999000
+            "br": br
         })
 
     async def play(
         self, 
-        quality = None, 
+        br: Union[int, str] = 999000,
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
         """获取播放该 music 对象指定的歌曲文件"""
-        data = await self._play_url(quality)
+        data = await self._play_url(br)
         if data["code"] != 200:
             return data
 
@@ -267,11 +267,11 @@ class _Music(DataObject, Music163Comment):
     
     async def download(
         self, 
-        quality = None, 
+        br: Union[int, str] = 999000,
         download_path: str = None
     ) -> Union[str, dict[str, Any]]:
         """获取下载该 music 对象指定的歌曲文件"""
-        data = await self._download_url(quality)
+        data = await self._download_url(br)
         if data["code"] != 200 or data["data"]["code"] == -105:
             return data
 
@@ -303,8 +303,8 @@ class Music(_Music):
         # 歌曲id
         self.id = music_data['id']
         # 标题列表 [大标题, 副标题]
-        self.name = [music_data['name'], music_data["alia"][0] if music_data["alia"] != [] else ""]
-        self.name_str = self.name[0] + self.name[1]
+        self.name = [music_data["name"], " ".join(music_data["alia"])]
+        self.name_str = f"{self.name[0]} {self.name[1]}"
         # 作者列表 [作者, 作者, ...]
         self.artist = [{"id": artist["id"], "name": artist["name"]} for artist in music_data['ar']]
         self.artist_str = "/".join([author["name"] for author in self.artist])
@@ -332,6 +332,43 @@ class Music(_Music):
             self.publish_time = None
         # 推荐理由
         self.reason = music_data["reason"] if "reason" in music_data else None
+
+
+class PersonalizedMusic(_Music):
+
+    def __init__(
+        self, 
+        headers: Optional[dict[str, str]], 
+        music_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, music_data)
+        # 资源类型
+        self.data_type = DATA_TYPE[0]
+        # 歌曲id
+        self.id = music_data['id']
+        # 标题列表 [大标题, 副标题]
+        self.name = [music_data["name"], " ".join(music_data["alias"])]
+        self.name_str = f"{self.name[0]} {self.name[1]}"
+        # 作者列表 [作者, 作者, ...]
+        self.artist = [{"id": artist["id"], "name": artist["name"]} for artist in music_data['artists']]
+        self.artist_str = "/".join([author["name"] for author in self.artist])
+        # 专辑列表
+        self.album_data = music_data["album"]
+        self.album_str = music_data["album"]["name"]
+        # 所有音质
+        self.quality = {
+            "b": music_data["bMusic"],
+            "h": music_data["hMusic"],
+            "m": music_data["mMusic"],
+            "l": music_data["lMusic"],
+            "sq": music_data.get("sqMusic"),
+            "hr": music_data.get("hrMusic"),
+        }
+        # mv id
+        self.mv_id = music_data["mvid"]
+        # 发表时间
+        self.album_data["publishTime"]
+
 
 class _PlayList(DataListObject, Music163Comment):
 
@@ -468,6 +505,30 @@ class ShortPlayList(_PlayList):
     
     def __next__(self) -> NoReturn:
         raise TypeError("ShortPlayList 并非一个完整的 PlayList , 请用 ShortPlayList 的歌单 id 请求一个完整的 PlayList 实例, 来得到歌单曲目")
+
+
+class ShorterPlayList(_PlayList):
+
+    def __init__(
+        self, 
+        headers: Optional[dict[str, str]], 
+        playlist_data: dict[str, Any]
+    ) -> None:
+        super().__init__(headers, playlist_data)
+        # 资源类型
+        self.data_type = DATA_TYPE[2]
+        # 歌单id
+        self.id = playlist_data["id"]
+        # 歌单标题
+        self.name = playlist_data["name"]
+        # 歌单封面
+        self.cover = playlist_data['picUrl']
+        self.track_count = playlist_data["trackCount"]
+        # 推荐理由
+        self.reason = playlist_data["copywriter"] if "copywriter" in playlist_data else None
+
+    def __next__(self) -> NoReturn:
+        raise TypeError("ShorterPlayList 并非一个完整的 PlayList , 请用 ShorterPlayList 的歌单 id 请求一个完整的 PlayList 实例, 来得到歌单曲目")
 
 
 class User(Api):
@@ -838,9 +899,9 @@ class Artist(_Artist):
         # 单曲数
         self.music_size = artist_data["musicSize"]
         # mv数
-        self.mv_size = artist_data["mvSize"]
+        self.mv_size = artist_data.get("mvSize")
         # 头像
-        self.cover = artist_data["cover"]
+        self.cover = artist_data["cover"] if "cover" in artist_data else artist_data["picUrl"]
 
 
 class ShortArtist(_Artist):
@@ -861,7 +922,7 @@ class ShortArtist(_Artist):
         # 专辑数
         self.album_size = artist_data["albumSize"]
         # mv数
-        self.mv_size = artist_data["mvSize"]
+        self.mv_size = artist_data.get("mvSize")
         # 头像
         self.cover = artist_data["picUrl"]
 
@@ -1019,30 +1080,27 @@ class ShortDj(_Dj):
         self.last_music_name = dj_data["lastProgramName"]
 
 
-class FmMusic(_Music):
+class PersonalizedDj(_Dj):
 
     def __init__(
         self, 
         headers: Optional[dict[str, str]], 
-        music_data: dict[str, Any]
+        dj_data: dict[str, Any]
     ) -> None:
-        super().__init__(headers, music_data)
-        # 资源类型
-        self.data_type = DATA_TYPE[0]
-        # 歌曲id
-        self.id = music_data['id']
-        # 标题列表 [大标题, 副标题]
-        self.name = music_data["name"]
-        # 作者列表 [作者, 作者, ...]
-        self.artist = [{"id": artist["id"], "name": artist["name"]} for artist in music_data['artists']]
-        self.artist_str = "/".join([author["name"] for author in self.artist])
-        # 专辑列表
-        self.album_data = music_data["album"]
-        self.album_str = music_data["album"]["name"]
-        # mv id
-        self.mv_id = music_data["mvid"]
-        # 发表时间
-        self.album_data["publishTime"]
+        super().__init__(headers, dj_data)
+        # 电台id
+        self.id = dj_data["id"]
+        # 电台标题
+        self.name = dj_data["name"]
+        # 电台封面
+        self.cover = dj_data['coverUrl']
+        # 电台创建者
+        self.user = dj_data['dj']
+        self.user_str = self.user["nickname"]
+        # 电台标签
+        self.tags = dj_data["channels"]
+        # 电台描述
+        self.description = dj_data["description"]
 
 
 class Fm(Api, ListObject):
@@ -1053,8 +1111,8 @@ class Fm(Api, ListObject):
     ) -> None:
         super().__init__(headers)
 
-    def __next__(self) -> FmMusic:
-        return FmMusic(self._headers, super().__next__())
+    def __next__(self) -> PersonalizedMusic:
+        return PersonalizedMusic(self._headers, super().__next__())
 
     async def read(self) -> dict[str, Any]:
         """获取fm歌曲"""

@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 # 最大并行请求数
 LIMIT: int = 8
 # 下载目录
