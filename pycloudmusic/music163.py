@@ -125,31 +125,104 @@ class Music163Api(Api):
 
         return Dj(self._headers, data["data"])
 
-
-    async def search(
+    async def _search(
         self, 
         key: str, 
         type_: Union[str, int] = 1, 
         page: int = 0, 
         limit: int = 30
     ) -> dict[str, Any]:
-        """搜索
-        type_: 
+        """
+        搜索 type_: 
         1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户
-        1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频"""
-        data = await self._post("/api/cloudsearch/pc", {
+        1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
+        """
+        return await self._post("/api/cloudsearch/pc", {
             "s": key, 
             "type": type_, 
             "limit": limit, 
             "offset": limit * page, 
             "total": True
         })
+    
+    async def search_music(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[Music, None, None]], dict[str, Any]]:
+        data = await self._search(key, "1", page, limit)
+
+        if data["code"] != 200:
+            return data
+
+        return data["result"]["songCount"], (Music(self._headers, music_data) for music_data in data["result"]['songs'])
+
+    async def search_album(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
+        data = await self._search(key, "10", page, limit)
         
         if data["code"] != 200:
             return data
 
-        return data['result']
-    
+        return data["result"]["albumCount"], (ShortAlbum(self._headers, album_data) for album_data in data["result"]['albums'])
+
+    async def search_artist(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
+        data = await self._search(key, "100", page, limit)
+
+        if data["code"] != 200:
+            return data
+
+        return data["result"]["artistCount"], (ShortArtist(self._headers, artist_data) for artist_data in data["result"]['artists'])
+
+    async def search_user(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[User, None, None]], dict[str, Any]]:
+        data = await self._search(key, "1002", page, limit)
+        
+        if data["code"] != 200:
+            return data
+
+        return data["result"]["userprofileCount"], (User(self._headers, user_data) for user_data in data["result"]['userprofiles'])
+
+    async def search_mv(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[Mv, None, None]], dict[str, Any]]:
+        data = await self._search(key, "1004", page, limit)
+
+        if data["code"] != 200:
+            return data
+
+        return data["result"]["mvCount"], (Mv(self._headers, music_data) for music_data in data["result"]['mvs'])
+
+    async def search_dj(
+        self, 
+        key: str, 
+        page: int = 0, 
+        limit: int = 30
+    ) -> Union[tuple[int, Generator[Dj, None, None]], dict[str, Any]]:
+        data = await self._search(key, "1009", page, limit)
+
+        if data["code"] != 200:
+            return data
+
+        return data["result"]["djRadiosCount"], (Dj(self._headers, data) for data in data["result"]["djRadios"])
+
     async def personalized_playlist(
         self, 
         limit: int = 30

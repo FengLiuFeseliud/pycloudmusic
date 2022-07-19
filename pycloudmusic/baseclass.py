@@ -26,7 +26,7 @@ class Api(Http, metaclass=ABCMeta):
                     key_value = f"dataItem * {len(key_value)}"
                 else:
                     key_value = json.dumps(key_value, indent=6)
-            str_ = f"{str_}\n    {key} = {key_value}"
+            str_ = f"{str_}\n    .{key} = {key_value}"
         return f"{str_}\n>"
 
 

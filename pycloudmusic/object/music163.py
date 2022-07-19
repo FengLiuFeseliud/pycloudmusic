@@ -972,7 +972,7 @@ class Dj(_Dj):
         # 电台创建时间
         self.create_time = dj_data["createTime"]
         # 是否收藏了电台
-        self.subed =  dj_data["subed"]
+        self.subed = dj_data["subed"] if "subed" in  dj_data else None
         # 最后上传电台节目 id
         self.last_music_id = dj_data["lastProgramId"]
         # 最后上传电台节目时间
