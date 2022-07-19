@@ -1,5 +1,4 @@
-/test.py
-/test.http
+/test*
 /pycloudmusic/__pycache__
 /pycloudmusic/*/__pycache__
 /download

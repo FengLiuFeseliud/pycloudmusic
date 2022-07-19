@@ -138,7 +138,7 @@ class Music163Comment(CommentObject):
         if self.thread_id is None:
             self.thread_id = f"{self.data_type}{self.id}"
 
-        comment_data_list = data["hotComments"] if "hotComments" in data else {}
+        comment_data_list = data["hotComments"] if hot else data["comments"]
         return data["total"], (Music163CommentItem(
             self._headers, dict({"threadId": self.thread_id}, **comment_data)
         ) for comment_data in comment_data_list)
