@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="pycloudmusic",
-    version="0.1.1",
+    version="0.1.1.1",
     description="优雅的异步高性能 Python 音乐 API 库",
     keywords=[
         "cloudmusic",
