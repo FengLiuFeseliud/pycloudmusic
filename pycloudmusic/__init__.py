@@ -59,3 +59,4 @@ def _id_format(id_, dict_str=False):
     return format_str
 
 from pycloudmusic.music163 import LoginMusic163, Music163Api
+from pycloudmusic.tools import *

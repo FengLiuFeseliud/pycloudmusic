@@ -77,13 +77,13 @@ class Http:
         
         if not os.path.isdir(file_path):
             os.makedirs(file_path)
-        
+
+        file_path_ = os.path.join(file_path, file_name)    
         try:
             session = await get_session()
             async with session.get(url, headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
             }) as req:
-                file_path_ = os.path.join(file_path, file_name)
                 async with aiofiles.open(file_path_, "wb") as file_:
                     async for chunk in req.content.iter_chunked(CHUNK_SIZE):
                         await file_.write(chunk)
