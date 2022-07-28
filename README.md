@@ -136,7 +136,7 @@ async def main():
     # https://music.163.com/song?id=1902224491&userid=492346933
     music = await musicapi.music(1902224491)
     # 按时间获取评论
-    async for comments in Page(playlist.comments, hot=False):
+    async for comments in Page(music.comments, hot=False):
         for comment in comments:
             print(f"{comment.user_str}:  {comment.content}")
 

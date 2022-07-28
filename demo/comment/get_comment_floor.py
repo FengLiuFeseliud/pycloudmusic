@@ -13,8 +13,10 @@ async def main():
     # https://music.163.com/song?id=1486983140&userid=492346933
     music = await musicapi.music(1486983140)
     # 获取热评第一条
-    head_comment = (await music.comment(limit=1))["hotComments"][0]
+    count, head_comment = await music.comments(limit=1)
     # 获取热评第一条分层评论
-    print(await music.comment_floor(head_comment["commentId"]))
+    count, comments = await list(head_comment)[0].floors()
+    for comment in comments:
+        print(f"{comment.user_str}:  {comment.content}")
 
 asyncio.run(main())
