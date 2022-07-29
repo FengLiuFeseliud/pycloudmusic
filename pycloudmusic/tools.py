@@ -73,10 +73,10 @@ class Page:
         else:
             await self._set_index(data)
 
-        tasks, page = [], 0
-        while page <= self.__max_page:
+        tasks = []
+        while self.__page <= self.__max_page:
             tasks.append(asyncio.create_task(self.__api_fun(page=self.__page, limit=self.limit, **self.kwargs)))
-            page += 1
+            self.__page += 1
         
         done, _ = await asyncio.wait(tasks)
         return (task.result() for task in done)

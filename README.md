@@ -7,7 +7,7 @@
 
 **优雅的异步高性能 Python 音乐 API 库**
 
-开箱即用/简单/快速
+开箱即用/简单/快速 Python >= 3.9
 
 [基于 NeteaseCloudMusicApi 改写](https://github.com/Binaryify/NeteaseCloudMusicApi)
 
