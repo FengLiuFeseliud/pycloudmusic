@@ -1,9 +1,26 @@
-from typing import Callable, Optional
+from typing import Any, Callable, Generator, Optional
 from math import ceil
 import asyncio
 
 
 class Page:
+    """
+    Page 对象可以按内部设置的方法来遍历绑定 Api 方法的页
+
+    from pycloudmusic import Music163Api, Page
+    import asyncio
+
+
+    async def main():
+        musicapi = Music163Api()
+        music = await musicapi.music(1902224491)
+        async for comments in Page(music.comments, hot=False):
+            for comment in comments:
+                print(f"{comment.user_str}:  {comment.content}")
+
+    asyncio.run(main()
+    """
+    
     
     def __init__(
         self, 
@@ -45,7 +62,11 @@ class Page:
 
         self.__page = page
 
-    async def all(self, call_fun: Optional[Callable[[dict], int]] = None):
+    async def all(
+        self, 
+        call_fun: Optional[Callable[[dict], int]] = None
+    ) -> Generator:
+        """请求绑定 Api 方法的所有数据"""
         data = await self.__api_fun(page=self.__page, limit=self.limit, **self.kwargs)
         if not call_fun is None:
             self.__max_page = call_fun(data)

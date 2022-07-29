@@ -1,6 +1,6 @@
 import hashlib
+import asyncio
 from http.cookies import SimpleCookie
-from time import sleep
 from typing import Any, Generator, Optional, Union
 from pycloudmusic import RECONNECTION, _id_format
 from pycloudmusic.ahttp import CannotConnectApi, get_session
@@ -151,6 +151,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[Music, None, None]], dict[str, Any]]:
+        """搜索单曲"""
         data = await self._search(key, "1", page, limit)
 
         if data["code"] != 200:
@@ -164,6 +165,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
+        """搜索专辑"""
         data = await self._search(key, "10", page, limit)
         
         if data["code"] != 200:
@@ -177,6 +179,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
+        """搜索歌手"""
         data = await self._search(key, "100", page, limit)
 
         if data["code"] != 200:
@@ -190,6 +193,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[User, None, None]], dict[str, Any]]:
+        """搜索用户"""
         data = await self._search(key, "1002", page, limit)
         
         if data["code"] != 200:
@@ -203,6 +207,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[Mv, None, None]], dict[str, Any]]:
+        """搜索 Mv"""
         data = await self._search(key, "1004", page, limit)
 
         if data["code"] != 200:
@@ -216,6 +221,7 @@ class Music163Api(Api):
         page: int = 0, 
         limit: int = 30
     ) -> Union[tuple[int, Generator[Dj, None, None]], dict[str, Any]]:
+        """搜索电台"""
         data = await self._search(key, "1009", page, limit)
 
         if data["code"] != 200:
@@ -448,7 +454,7 @@ class LoginMusic163(Api):
             code, cookie = await self.qr_check(qr_key)
 
             if code in [801, 802]:
-                sleep(time_sleep)
+                await asyncio.sleep(time_sleep)
                 continue
 
             if code == 800:
