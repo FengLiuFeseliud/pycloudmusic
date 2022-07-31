@@ -1,17 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, Optional, Union, Generator
-from pycloudmusic.ahttp import Http
 import json
 
 
-class Api(Http, metaclass=ABCMeta):
+class Api(metaclass=ABCMeta):
     """Api"""
 
-    def __init__(
-        self, 
-        headers: Optional[dict[str, str]] = None
-    ) -> None:
-        super().__init__(headers)
+    def __init__(self, data: dict[str, Any]) -> None:
+        pass
 
     def __str__(self) -> str:
         """格式化输出类属性"""
@@ -35,10 +31,9 @@ class DataObject(Api, metaclass=ABCMeta):
 
     def __init__(
         self, 
-        headers: Optional[dict[str, str]], 
         data: dict[str, Any]
     ) -> None:
-        super().__init__(headers)
+        super().__init__(data)
     
     @abstractmethod
     async def subscribe(
@@ -81,10 +76,9 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
 
     def __init__(
         self, 
-        headers: Optional[dict[str, str]], 
         data: dict[str, Any]
     ) -> None:
-        super().__init__(headers, data)
+        super().__init__(data)
 
     @abstractmethod
     def __next__(self) -> Any:
@@ -96,10 +90,9 @@ class CommentItemObject(Api):
 
     def __init__(
         self, 
-        headers: Optional[dict[str, str]],
         comment_data: dict[str, Any]
     ) -> None:
-        super().__init__(headers)
+        super().__init__(comment_data)
     
     @abstractmethod
     async def floors(
@@ -139,9 +132,9 @@ class CommentObject(Api):
 
     def __init__(
         self, 
-        headers: Optional[dict[str, str]] = None
+        comment_data: dict[str, Any]
     ) -> None:
-        super().__init__(headers)
+        super().__init__(comment_data)
 
     @abstractmethod
     async def comments(
