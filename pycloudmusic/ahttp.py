@@ -35,24 +35,41 @@ async def _get_session():
     return __session
 
 
+def reconnection(func):
+    """重新连接"""
+    from pycloudmusic import RECONNECTION
+
+    async def wrapper(*args, **kwargs):
+        reconnection_count = 0
+        try:
+            return await func(*args, **kwargs)
+        except RuntimeError:
+            """重启会话"""
+            global __session
+            await __session.close()
+            __session = None
+            return await func(*args, **kwargs)
+
+        except Exception as err:
+            """重新连接"""
+            reconnection_count =+ 1
+            if reconnection_count > RECONNECTION:
+                raise CannotConnectApi(f"超出重连次数 {RECONNECTION} 无法请求到 {args[0]} err: {err}")
+
+            return await func(*args, **kwargs)
+
+    return wrapper
+
+
+@reconnection
 async def _post_url(
     url: str, 
     data: Optional[dict[str, Any]] = None, 
-    reconnection_count: int=0
 ) -> dict[str, Any]:
     """post 请求"""
-    from pycloudmusic import RECONNECTION
-
-    try:
-        session = await _get_session()
-        async with session.post(url, headers=__headers, data=data) as req:
-            return await req.json(content_type=None)
-    except Exception as err:
-        reconnection_count =+ 1
-        if reconnection_count > RECONNECTION:
-            raise CannotConnectApi(f"超出重连次数 {RECONNECTION} 无法请求到 {url} err: {err}")
-
-        return await _post_url(url, data, reconnection_count)
+    session = await _get_session()
+    async with session.post(url, headers=__headers, data=data) as req:
+        return await req.json(content_type=None)
 
 
 async def _post(
@@ -63,14 +80,14 @@ async def _post(
     return await _post_url(f"https://music.163.com{path}", data)
 
 
+@reconnection
 async def _download(
     url: str, 
     file_name: str, 
     file_path: Optional[str] = None, 
-    reconnection_count: int = 0
 ) -> str:
     """下载文件"""
-    from pycloudmusic import RECONNECTION, CHUNK_SIZE
+    from pycloudmusic import CHUNK_SIZE
 
     if file_path is None:
         from pycloudmusic import DOWNLOAD_PATH
@@ -79,21 +96,13 @@ async def _download(
     if not os.path.isdir(file_path):
         os.makedirs(file_path)
 
-    file_path_ = os.path.join(file_path, file_name)    
-    try:
-        session = await _get_session()
-        async with session.get(url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
-        }) as req:
-            async with aiofiles.open(file_path_, "wb") as file_:
-                async for chunk in req.content.iter_chunked(CHUNK_SIZE):
-                    await file_.write(chunk)
-                
-            return file_path_
-
-    except Exception as err:
-        reconnection_count += 1
-        if reconnection_count > RECONNECTION:
-            raise CannotConnectApi(f"超出重连次数 {RECONNECTION} 无法请求到 {url} err: {err}")
-
-        return await _download(url, file_name, file_path, reconnection_count)
+    file_path_ = os.path.join(file_path, file_name)
+    session = await _get_session()
+    async with session.get(url, headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36"
+    }) as req:
+        async with aiofiles.open(file_path_, "wb") as file_:
+            async for chunk in req.content.iter_chunked(CHUNK_SIZE):
+                await file_.write(chunk)
+            
+        return file_path_
