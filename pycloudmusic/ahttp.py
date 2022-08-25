@@ -2,16 +2,11 @@ import os
 from typing import Any, Optional
 import aiofiles, aiohttp
 from pycloudmusic import MUSIC_HEADERS
+from pycloudmusic.error import CannotConnectApi, Music163BadCode
 
 
 __session = None
 __headers = MUSIC_HEADERS
-
-
-class CannotConnectApi(Exception):
-
-    def __init__(self, *args: object) -> None:
-        super().__init__(*args)
 
 
 def _set_cookie(cookie: str):
@@ -50,7 +45,7 @@ def reconnection(func):
             __session = None
             return await func(*args, **kwargs)
 
-        except Exception as err:
+        except Exception and not Music163BadCode as err:
             """重新连接"""
             reconnection_count =+ 1
             if reconnection_count > RECONNECTION:
@@ -77,7 +72,12 @@ async def _post(
     data: Optional[dict[str, Any]] = None
 ) -> dict[str, Any]:
     """post 请求 api 路径"""
-    return await _post_url(f"https://music.163.com{path}", data)
+    post_data = await _post_url(f"https://music.163.com{path}", data)
+
+    if post_data["code"] != 200:
+        raise Music163BadCode(post_data)
+
+    return post_data
 
 
 @reconnection

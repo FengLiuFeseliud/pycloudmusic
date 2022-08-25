@@ -3,6 +3,7 @@ import time
 from typing import Generator, NoReturn, Optional, Union, Any
 from pycloudmusic.ahttp import _post, _download, _post_url
 from pycloudmusic.baseclass import *
+from pycloudmusic.error import Music163BadCode, Music163BadData
 
 
 # 数据类型
@@ -62,16 +63,13 @@ class Music163CommentItem(CommentItemObject):
         self, 
         page: int = 0, 
         limit: int = 20
-    ) -> Union[tuple[int, Generator[CommentItemObject, None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator[CommentItemObject, None, None]]:
         data = await _post("/api/resource/comment/floor/get", {
             "parentCommentId": self.id, 
             "threadId": self.thread_id, 
             "limit": limit,
             "offset": limit * page
         })
-
-        if data["code"] != 200:
-            return data
 
         return data["data"]["totalCount"], (Music163CommentItem(
             dict({"threadId": self.thread_id}, **comment_data)
@@ -122,7 +120,7 @@ class Music163Comment(CommentObject):
         page: int = 0, 
         limit: int = 20, 
         before_time: int = 0
-    ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator["CommentItemObject", None, None]]:
         api = "/api/v1/resource/hotcomments" if hot else "/api/v1/resource/comments"
 
         data = await _post("%s/%s%s" % (api, self.data_type, self.id), {
@@ -131,9 +129,6 @@ class Music163Comment(CommentObject):
             "offset": limit * page, 
             "beforeTime": before_time
         })
-
-        if data["code"] != 200:
-            return data
 
         if self.thread_id is None:
             self.thread_id = f"{self.data_type}{self.id}"
@@ -181,35 +176,26 @@ class _Music(DataObject, Music163Comment):
         self, 
         page: int = 0, 
         limit: int = 50
-    ) -> Union[Generator["PlayList", None, None], dict[str, Any]]:
+    ) -> Generator["PlayList", None, None]:
         """该 music 对象的相似歌单"""
-        data = await _post("/api/discovery/simiPlaylist", {
+        return (PlayList(playlist_data) for playlist_data in (await _post("/api/discovery/simiPlaylist", {
             "songid": self.id, 
             "limit": limit, 
             "offset": limit * page,
-        })
-
-        if data["code"] != 200:
-            return data
-            
-        return (PlayList(playlist_data) for playlist_data in data['playlists'])
+        }))['playlists'])
 
     async def similar_user(
         self, 
         page: int = 0, 
         limit: int = 50
-    ) -> Union[Generator["User", None, None], dict[str, Any]]:
+    ) -> Generator["User", None, None]:
         """最近5个听了这 music 对象的用户"""
-        data = await _post("/api/discovery/simiUser", {
+
+        return (User(user_data) for user_data in (await _post("/api/discovery/simiUser", {
             "songid": self.id, 
             "limit": limit, 
             "offset": limit * page,
-        })
-
-        if data["code"] != 200:
-            return data
-            
-        return (User(user_data) for user_data in data['userprofiles'])
+        }))['userprofiles'])
 
     async def like(
         self, 
@@ -256,11 +242,11 @@ class _Music(DataObject, Music163Comment):
         self, 
         br: Union[int, str] = 999000,
         download_path: str = None
-    ) -> Union[str, dict[str, Any]]:
+    ) -> str:
         """获取播放该 music 对象指定的歌曲文件"""
         data = await self._play_url(br)
         if data["code"] != 200:
-            return data
+            raise Music163BadCode(data)
 
         return await _download(data["data"][0]["url"], f"{self.id}.mp3", download_path)
     
@@ -268,21 +254,23 @@ class _Music(DataObject, Music163Comment):
         self, 
         br: Union[int, str] = 999000,
         download_path: str = None
-    ) -> Union[str, dict[str, Any]]:
+    ) -> str:
         """获取下载该 music 对象指定的歌曲文件"""
         data = await self._download_url(br)
-        if data["code"] != 200 or data["data"]["code"] == -105:
-            return data
+        if data["code"] != 200:
+            raise Music163BadCode(data)
+        elif data["data"]["code"] == -105:
+            raise Music163BadData(data)
 
         return await _download(data["data"]["url"], f"{self.id}.mp3", download_path)
 
-    async def album(self) -> Union["Album", dict[str, Any]]:
+    async def album(self) -> "Album":
         """实例化该对像专辑 album 对像并返回 album 对像"""
         from pycloudmusic.music163 import Music163Api
         
         return await Music163Api().album(self.album_data["id"])
 
-    async def mv(self) -> Union["Mv", dict[str, Any]]:
+    async def mv(self) -> "Mv":
         """获取该对像 mv 实例化 mv 对像并返回 mv 对像"""
         from pycloudmusic.music163 import Music163Api
 
@@ -394,18 +382,15 @@ class _PlayList(DataListObject, Music163Comment):
         self, 
         page: int=0, 
         limit: int=20
-    ) -> Union[Generator["User", None, None], dict[str, Any]]:
+    ) -> Generator["User", None, None]:
         """
         查看歌单收藏者
         """
-        data = await _post("/api/playlist/subscribers", {
-            "id": self.id, "limit": limit, "offset": page * limit
-        })
-
-        if data["code"] != 200:
-            return data
-
-        return (User(user_data) for user_data in data['subscribers'])
+        return (User(user_data) for user_data in (await _post("/api/playlist/subscribers", {
+            "id": self.id, 
+            "limit": limit, 
+            "offset": page * limit
+        }))['subscribers'])
 
 
 class PlayList(_PlayList):
@@ -557,21 +542,16 @@ class User(Api):
         self, 
         page: int = 0, 
         limit: int = 30
-    ) -> Union[Generator[PlayList, None, None], dict[str, Any]]:
+    ) -> Generator[PlayList, None, None]:
         """获取该对象的歌单"""
-        data = await _post("/api/user/playlist", {
+        return (PlayList(playlist_data) for playlist_data in (await _post("/api/user/playlist", {
             "uid": self.id, 
             "limit": limit, 
             "offset": limit * page, 
             "includeVideo": True
-        })
+        }))['playlist'])
 
-        if data["code"] != 200:
-            return data["code"]
-        
-        return (PlayList(playlist_data) for playlist_data in data['playlist'])
-
-    async def like_music(self) -> Union[PlayList, dict[str, Any]]:
+    async def like_music(self) -> PlayList:
         """获取该对象喜欢的歌曲"""
         from pycloudmusic.music163 import Music163Api
 
@@ -581,14 +561,11 @@ class User(Api):
     async def record(
         self, 
         type_: bool = True
-    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    ) -> Generator[Music, None, None]:
         """获取该对象听歌榜单"""
         data = await _post("/api/v1/play/record", {
             "uid": self.id, "type": 0 if type_ else 1
         })
-
-        if data['code'] != 200:
-            return data
 
         return (Music(music_data) for music_data in (data["allData"] if type_ else data["weekData"]))
 
@@ -715,14 +692,9 @@ class _Mv(DataObject, Music163Comment):
         self, 
         download_path: Optional[str] = None, 
         quality: Union[str, int] = 1080
-    ) -> Union[str, dict[str, Any]]:
+    ) -> str:
         """获取播放该 mv 对象指定的视频文件"""
-        data = await self._play_url(quality)
-
-        if data["code"] != 200:
-            return data
-
-        return await _download(data["data"]["url"], f"{self.id}.mp4", download_path)
+        return await _download((await self._play_url(quality))["data"]["url"], f"{self.id}.mp4", download_path)
 
     async def subscribe(
         self, 
@@ -746,6 +718,7 @@ class Mv(_Mv):
         mv_data: dict[str, Any]
     ) -> None:
         super().__init__(mv_data)
+        mv_data = mv_data["data"]
         # mv id
         self.id = mv_data["id"]
         # mv标题
@@ -807,47 +780,32 @@ class _Artist(DataObject):
         hot: bool = True, 
         page: int = 0, 
         limit: int = 100
-    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    ) -> Generator[Music, None, None]:
         """获取该对像歌曲"""
-        data = await _post("/api/v1/artist/songs", {
+        return (Music(music_data) for music_data in (await _post("/api/v1/artist/songs", {
             "id": self.id,
             "order": 'hot' if hot else "time",
             "offset": limit * page,
             "limit": limit,
             "private_cloud": True,
             "work_type": 1
-        })
-        
-        if data["code"] != 200:
-            return data
+        }))['songs'])
 
-        return (Music(music_data) for music_data in data['songs'])
-
-    async def song_top(self) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    async def song_top(self) -> Generator[Music, None, None]:
         """获取该对像热门50首"""
-        data = await _post("/api/artist/top/song", {
+        return (Music(music_data) for music_data in (await _post("/api/artist/top/song", {
             "id": self.id
-        })
-
-        if data["code"] != 200:
-            return data
-
-        return (Music(music_data) for music_data in data['songs'])
+        }))['songs'])
 
     async def album(
         self, 
         page: int = 0,
         limit: int = 30
-    ) -> Union[Generator[Album, None, None], dict[str, Any]]:
+    ) -> Generator[Album, None, None]:
         """获取该对像专辑"""
-        data = await _post("/api/artist/albums/%s" % self.id, {
+        return (Album(album_data) for album_data in (await _post("/api/artist/albums/%s" % self.id, {
             "limit": limit, "offset": limit * page, "total": True,
-        })
-
-        if data["code"] != 200:
-            return data
-
-        return (Album(album_data) for album_data in data["hotAlbums"])
+        }))["hotAlbums"])
     
     async def subscribe(
         self, 
@@ -956,9 +914,6 @@ class _Dj(DataListObject):
         data = await _post("/api/dj/program/byradio", {
             "radioId": self.id, "limit": limit, "offset": limit * page, "asc": asc
         })
-
-        if data["code"] != 200:
-            return data
 
         self.music_list = data["programs"]
         return data
@@ -1093,9 +1048,6 @@ class Fm(Api, ListObject):
     async def read(self) -> dict[str, Any]:
         """获取fm歌曲"""
         data = await _post("/api/v1/radio/get")
-
-        if data["code"] != 200:
-            return data
 
         self.music_list = data["data"]
         return data
@@ -1314,9 +1266,6 @@ class Event(Api, ListObject):
             "lasttime": last_time
         })
 
-        if data["code"] != 200:
-            return data
-
         self.music_list = data['event']
         return data
 
@@ -1333,9 +1282,6 @@ class Event(Api, ListObject):
             "getcounts": "true", 
             "total": "true"
         })
-
-        if data["code"] != 200:
-            return data
 
         self.music_list = data['events']
         return data
@@ -1483,69 +1429,51 @@ class My(User):
             "type": 0 if type_ else 1
         })
 
-    async def recommend_songs(self) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    async def recommend_songs(self) -> Generator[Music, None, None]:
         """获取日推"""
-        data = await _post("/api/v3/discovery/recommend/songs")
-        
-        if data["code"] != 200:
-            return data
+        return (Music(music_data) for music_data in (await _post("/api/v3/discovery/recommend/songs"))["data"]["dailySongs"])
 
-        return (Music(music_data) for music_data in data["data"]["dailySongs"])
-
-    async def recommend_resource(self) -> Union[Generator[ShortPlayList, None, None], dict[str, Any]]:
+    async def recommend_resource(self) -> Generator[ShortPlayList, None, None]:
         """获取每日推荐歌单"""
-        data = await _post("/api/v1/discovery/recommend/resource")
-        
-        if data["code"] != 200:
-            return data
-
-        return (ShortPlayList(playlist_data) for playlist_data in data["recommend"])
+        return (ShortPlayList(playlist_data) for playlist_data in ( await _post("/api/v1/discovery/recommend/resource"))["recommend"])
 
     async def playmode_intelligence(
         self, 
         music_id: Union[str, int], 
         sid: Optional[Union[str, int]] = None, 
         playlist_id: Optional[Union[str, int]] = None
-    ) -> Union[Generator[Music, None, None], dict[str, Any]]:
+    ) -> Generator[Music, None, None]:
         """心动模式/智能播放"""
         if playlist_id is None:
             playlist_id = await self._get_like_playlist_id()
 
-        data = await _post("/api/playmode/intelligence/list", {
+        return (Music(music_data["songInfo"]) for music_data in (await _post("/api/playmode/intelligence/list", {
             "songId": music_id,
             "playlistId": playlist_id,
             "type": "fromPlayOne",
             "startMusicId": sid if sid is not None else music_id,
             "count": 1,
-        })
-
-        if data["code"] != 200:
-            return data
-
-        return (Music(music_data["songInfo"]) for music_data in data["data"])
+        }))["data"])
     
     async def sublist_artist(
         self, 
         page: int = 0, 
         limit: int = 25
-    ) -> Union[tuple[int, Generator[ShortArtist, None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator[ShortArtist, None, None]]:
         """查看 cookie 用户收藏的歌手"""
         data = await _post("/api/artist/sublist", {
             "limit": limit, 
             "offset": page * limit, 
             "total": "true"
         })
-
-        if data["code"] != 200:
-            return data
-
+        
         return data["count"], (ShortArtist(artist_data) for artist_data in data["data"])
 
     async def sublist_album(
         self, 
         page: int = 0, 
         limit: int = 25
-    ) -> Union[tuple[int, Generator[ShortAlbum, None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator[ShortAlbum, None, None]]:
         """查看 cookie 用户收藏的专辑"""
         data = await _post("/api/album/sublist", {
             "limit": limit, 
@@ -1553,16 +1481,13 @@ class My(User):
             "total": "true"
         })
 
-        if data["code"] != 200:
-            return data
-
         return data["count"], (ShortAlbum(album_data) for album_data in data["data"])
 
     async def sublist_dj(
         self, 
         page: int = 0, 
         limit: int = 25
-    ) -> Union[tuple[int, Generator[ShortDj, None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator[ShortDj, None, None]]:
         """查看 cookie 用户收藏的电台"""
         data = await _post("/api/djradio/get/subed", {
             "limit": limit, 
@@ -1570,25 +1495,19 @@ class My(User):
             "total": "true"
         })
 
-        if data["code"] != 200:
-            return data
-
         return data["count"], (ShortDj(dj_data) for dj_data in data["djRadios"])
     
     async def sublist_mv(
         self, 
         page: int = 0, 
         limit: int = 25
-    ) -> Union[tuple[int, Generator[ShortMv, None, None]], dict[str, Any]]:
+    ) -> tuple[int, Generator[ShortMv, None, None]]:
         """查看 cookie 用户收藏的 MV"""
         data = await _post("/api/cloudvideo/allvideo/sublist", {
             "limit": limit, 
             "offset": page * limit, 
             "total": "true"
         })
-
-        if data["code"] != 200:
-            return data
 
         return data["count"], (ShortMv(mv_data) for mv_data in data["data"])
     
@@ -1598,16 +1517,11 @@ class My(User):
         limit: int = 50
     ) -> dict[str, Any]:
         """查看 cookie 用户收藏的专题"""
-        data = await _post("/api/topic/sublist", {
+        return  await _post("/api/topic/sublist", {
             "limit": limit, 
             "offset": page * limit, 
             "total": "true"
         })
-
-        if data["code"] != 200:
-            return data
-
-        return data
 
     def fm(self) -> Fm:
         """私人 fm 实例化一个 fm 对象并返回"""
@@ -1625,13 +1539,9 @@ class My(User):
         self, 
         page: int = 0, 
         limit: int = 30
-    ) -> Union[Cloud, dict[str, Any]]:
+    ) -> Cloud:
         """获取云盘数据并实例化一个 cloud 对象返回"""
-        data = await _post("/api/v1/cloud/get", {
+
+        return Cloud(await _post("/api/v1/cloud/get", {
             'limit': limit, 'offset': page * limit
-        })
-
-        if data["code"] != 200:
-            return data
-
-        return Cloud(data)
+        }))

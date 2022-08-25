@@ -1,4 +1,4 @@
-from typing import Any, Callable, Generator, Optional
+from typing import Callable, Generator, Optional
 from math import ceil
 import asyncio
 
@@ -58,9 +58,12 @@ class Page:
 
     def set_page(self, page: int):
         if page > self.__max_page:
-            raise IndexError("page > self.__max_pag")
+            raise IndexError("page > self.__max_page")
 
         self.__page = page
+
+    def set_max_page(self, page: int):
+        self.__max_page = page
 
     async def all(
         self, 
