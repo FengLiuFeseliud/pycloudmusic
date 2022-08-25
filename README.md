@@ -142,3 +142,25 @@ async def main():
 
 asyncio.run(main())
 ```
+
+## 错误处理
+
+API 返回 200 以外状态码触发 Music163BadCode 错误
+
+错误对象.code 获取 API 状态码，错误对象.data 获取 API 数据
+
+```python
+from pycloudmusic import Music163Api, Music163BadCode
+import asyncio
+
+
+async def main():
+    musicapi = Music163Api()
+
+    try:
+        playlist = await musicapi.playlist(7487291782)
+    except Music163BadCode as err:
+        print(err, err.code, err.data)
+
+asyncio.run(main())
+```
