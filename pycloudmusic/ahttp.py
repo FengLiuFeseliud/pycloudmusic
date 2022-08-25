@@ -45,7 +45,7 @@ def reconnection(func):
             __session = None
             return await func(*args, **kwargs)
 
-        except Exception and not Music163BadCode as err:
+        except Exception or not Music163BadCode as err:
             """重新连接"""
             reconnection_count =+ 1
             if reconnection_count > RECONNECTION:
