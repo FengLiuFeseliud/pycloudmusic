@@ -59,5 +59,6 @@ def _id_format(id_, dict_str=False):
     return format_str
 
 from pycloudmusic.music163 import LoginMusic163, Music163Api
+from pycloudmusic.ahttp import set_proxy, set_proxy_callback
 from pycloudmusic.tools import *
 from pycloudmusic.error import *
