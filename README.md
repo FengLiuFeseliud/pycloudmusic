@@ -164,3 +164,42 @@ async def main():
 
 asyncio.run(main())
 ```
+
+## 代理设置
+
+pycloudmusic 支持 proxy 时出现错误触发回调来更新 proxy
+
+```python
+from pycloudmusic import Music163Api, set_proxy, set_proxy_callback
+import asyncio
+
+# 正常这里是多个 proxy ip
+proxy = [
+    "http://117.114.149.66:55443"
+]
+
+# 设置 proxy
+set_proxy(proxy[0])
+
+# proxy 更新回调
+def proxy_callback(err):
+    # 如果 proxy 时出现错误这里更新
+    # 第一个返回值新的 proxy ip
+    # 第二个返回值 aiohttp.BasicAuth proxy 身份验证, 没有为 None
+    return proxy[0], None
+
+# 设置 proxy 更新回调
+set_proxy_callback(proxy_callback)
+
+async def main():
+    musicapi = Music163Api()
+    # 获取歌曲 421531
+    # https://music.163.com/#/song?id=421531
+    music = await musicapi.music(421531)
+    await music.play()
+    # 打印歌曲信息
+    print(music)
+    print("=" * 50)
+
+asyncio.run(main())
+```
