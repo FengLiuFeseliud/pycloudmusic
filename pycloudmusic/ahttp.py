@@ -91,13 +91,15 @@ async def _post_url(
     data: Optional[dict[str, Any]] = None, 
     reconnection_count: Optional[int] = None, 
 ) -> dict[str, Any]:
+    from pycloudmusic import TIMEOUT
+
     """post 请求"""
     global __proxy
     global __proxy_auth
 
     session = await _get_session()
     
-    async with session.post(url, headers=__headers, data=data, proxy=__proxy, proxy_auth=__proxy_auth) as req:
+    async with session.post(url, headers=__headers, data=data, proxy=__proxy, proxy_auth=__proxy_auth, timeout=TIMEOUT) as req:
         return await req.json(content_type=None)
 
 

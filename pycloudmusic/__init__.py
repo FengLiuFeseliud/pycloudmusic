@@ -7,6 +7,7 @@ DOWNLOAD_PATH: str = "./download"
 CHUNK_SIZE: int = 1024
 # 重连次数
 RECONNECTION: int = 3
+TIMEOUT: int = 30
 # 不输出 NOT_PRINT_OBJECT_DICT 中指定的列表详细
 NOT_PRINT_OBJECT_DICT: list[str] = ["music_list"]
 # music163 通用请求头
@@ -43,6 +44,10 @@ def set_config(config: dict[str, Any]):
     if "RECONNECTION" in config:
         global RECONNECTION
         RECONNECTION = config["RECONNECTION"]
+
+    if "TIMEOUT" in config:
+        global TIMEOUT
+        TIMEOUT = config["TIMEOUT"]
 
 
 def _id_format(id_, dict_str=False):

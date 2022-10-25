@@ -318,6 +318,9 @@ class Music(_Music):
             self.publish_time = None
         # 推荐理由
         self.reason = music_data["reason"] if "reason" in music_data else None
+        # 歌曲时长
+        self.duration_ms = music_data["dt"]
+        self.duration = self.duration_ms / 1000
 
 
 class PersonalizedMusic(_Music):
