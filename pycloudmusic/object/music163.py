@@ -503,7 +503,7 @@ class ShorterPlayList(_PlayList):
         # 歌单标题
         self.name = playlist_data["name"]
         # 歌单封面
-        self.cover = playlist_data['picUrl']
+        self.cover = playlist_data['picUrl'] if 'picUrl' in playlist_data else playlist_data["coverImgUrl"]
         self.track_count = playlist_data["trackCount"]
         # 推荐理由
         self.reason = playlist_data["copywriter"] if "copywriter" in playlist_data else None

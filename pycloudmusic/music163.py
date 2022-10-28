@@ -126,10 +126,10 @@ class Music163Api:
         key: str, 
         page: int = 0, 
         limit: int = 30
-    ) -> tuple[int, Generator[PlayList, None, None]]:
+    ) -> tuple[int, Generator[ShorterPlayList, None, None]]:
         """搜索歌单"""
         data = await self._search(key, "1000", page, limit)
-        return data["result"]["playlistCount"], (PlayList(playlist_data) for playlist_data in data["result"]['playlists'])
+        return data["result"]["playlistCount"], (ShorterPlayList(playlist_data) for playlist_data in data["result"]['playlists'])
 
     async def search_album(
         self, 
