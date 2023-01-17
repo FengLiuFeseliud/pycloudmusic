@@ -13,6 +13,6 @@ async def main():
     # https://music.163.com/song?id=1486983140&userid=492346933
     music = await musicapi.music(1486983140)
     # 发送评论
-    print(await music.comment_add("ohhhhhh!!!"))
+    print(await music.comment_send("ohhhhhh!!!"))
 
 asyncio.run(main())

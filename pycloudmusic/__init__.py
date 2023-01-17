@@ -1,3 +1,7 @@
+from pycloudmusic.error import *
+from pycloudmusic.music163 import LoginMusic163, Music163Api
+from pycloudmusic.tools import *
+from pycloudmusic.ahttp import set_proxy, set_proxy_callback
 from typing import Any
 # 最大并行请求数
 LIMIT: int = 8
@@ -62,8 +66,3 @@ def _id_format(id_, dict_str=False):
         format_str = str(id_)
 
     return format_str
-
-from pycloudmusic.music163 import LoginMusic163, Music163Api
-from pycloudmusic.ahttp import set_proxy, set_proxy_callback
-from pycloudmusic.tools import *
-from pycloudmusic.error import *

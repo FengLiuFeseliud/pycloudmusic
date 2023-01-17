@@ -15,7 +15,7 @@ async def main():
     # 打印歌曲信息
     print(music)
     print("=" * 50)
-    
+
     # 下载歌曲
     await music.play()
 
