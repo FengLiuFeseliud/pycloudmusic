@@ -3,7 +3,8 @@
 """
 
 
-from pycloudmusic import Music163Api
+from pycloudmusic.music163 import Music163Api
+
 import asyncio
 
 
@@ -15,7 +16,7 @@ async def main():
     # 打印歌单信息
     print(playlist)
     print("=" * 50)
-    
+
     # 创建任务
     tasks = [asyncio.create_task(music.play()) for music in playlist]
     # 等待任务

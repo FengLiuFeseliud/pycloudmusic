@@ -6,3 +6,4 @@
 /.eggs
 /dist
 /pycloudmusic.egg-info
+.DS_Store

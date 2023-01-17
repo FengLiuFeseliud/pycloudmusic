@@ -20,12 +20,11 @@ class Page:
 
     asyncio.run(main()
     """
-    
-    
+
     def __init__(
-        self, 
-        api_fun: Callable, 
-        limit: Optional[int] = None, 
+        self,
+        api_fun: Callable,
+        limit: Optional[int] = None,
         page: int = 0,
         **kwargs
     ) -> None:
@@ -47,7 +46,6 @@ class Page:
         self.__max_page = ceil(count / self.limit) - 1
         return data
 
-
     async def __anext__(self):
         if self.__page > self.__max_page:
             raise StopAsyncIteration
@@ -66,7 +64,7 @@ class Page:
         self.__max_page = page
 
     async def all(
-        self, 
+        self,
         call_fun: Optional[Callable[[dict], int]] = None
     ) -> Generator:
         """请求绑定 Api 方法的所有数据"""
@@ -78,8 +76,9 @@ class Page:
 
         tasks = []
         while self.__page <= self.__max_page:
-            tasks.append(asyncio.create_task(self.__api_fun(page=self.__page, limit=self.limit, **self.kwargs)))
+            tasks.append(asyncio.create_task(self.__api_fun(
+                page=self.__page, limit=self.limit, **self.kwargs)))
             self.__page += 1
-        
+
         done, _ = await asyncio.wait(tasks)
         return (task.result() for task in done)

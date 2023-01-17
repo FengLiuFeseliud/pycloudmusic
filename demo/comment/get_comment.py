@@ -3,7 +3,9 @@
 """
 
 
-from pycloudmusic import Music163Api, Page
+from pycloudmusic.music163 import Music163Api
+from pycloudmusic.tools import Page
+
 import asyncio
 
 
