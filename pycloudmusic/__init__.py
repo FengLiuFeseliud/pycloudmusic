@@ -1,8 +1,8 @@
 from pycloudmusic.error import *
-from pycloudmusic.music163 import LoginMusic163, Music163Api
 from pycloudmusic.tools import *
-from pycloudmusic.ahttp import set_proxy, set_proxy_callback
+
 from typing import Any
+
 # 最大并行请求数
 LIMIT: int = 8
 # 下载目录

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Union, Generator
+from typing import Any, Union, Generator
+
 import json
 
 
