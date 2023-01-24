@@ -294,11 +294,11 @@ class Music(_Music):
         # 作者列表 [作者, 作者, ...]
         self.artist = [{"id": artist["id"], "name": artist["name"]}
                        for artist in music_data['ar']]
-        self.artist_str = "/".join([author["name"] for author in self.artist])
+        self.artist_str = "/".join([str(author["name"]) for author in self.artist])
         # 专辑列表
         self.album_data = music_data["al"]
         if "tns" in self.album_data:
-            self.album_str = self.album_data["name"] + " " + (
+            self.album_str = str(self.album_data["name"]) + " " + (
                 self.album_data["tns"][0] if self.album_data["tns"] != [] else "")
         else:
             self.album_str = self.album_data["name"]
