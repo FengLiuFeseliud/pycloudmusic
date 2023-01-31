@@ -12,6 +12,6 @@
 [Getting Started](/pycloudmusic/README)
 [个人网站](https://sakuratools.top)
 
-![](/pycloudmusic/bg.png@0x0x0x80)
+![](/pycloudmusic/img/bg.png)
 
 ![color](#2b313a)
