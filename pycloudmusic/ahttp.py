@@ -1,6 +1,7 @@
 import os
 from typing import Any, Callable, Optional
-import aiofiles, aiohttp
+import aiofiles
+import aiohttp
 from pycloudmusic import MUSIC_HEADERS
 from pycloudmusic.error import CannotConnectApi, Music163BadCode
 
@@ -8,7 +9,8 @@ from pycloudmusic.error import CannotConnectApi, Music163BadCode
 __session = None
 __proxy = None
 __proxy_auth = None
-__proxy_callback: Optional[Callable[[Exception], tuple[str, Optional[aiohttp.BasicAuth]]]] = None
+__proxy_callback: Optional[Callable[[Exception],
+                                    tuple[str, Optional[aiohttp.BasicAuth]]]] = None
 __headers = MUSIC_HEADERS
 
 
@@ -29,11 +31,11 @@ async def _get_session():
     if __session is None:
         conn = aiohttp.TCPConnector(limit=LIMIT)
         __session = aiohttp.ClientSession(connector=conn)
-    
+
     return __session
 
 
-def set_proxy(proxy, proxy_auth = None):
+def set_proxy(proxy, proxy_auth=None):
     """设置代理"""
     global __proxy
     global __proxy_auth
@@ -67,18 +69,19 @@ def reconnection(func):
             """重新连接"""
             global __proxy
             global __proxy_callback
-            
+
             if __proxy != None and __proxy_callback != None:
                 global __proxy_auth
                 __proxy, __proxy_auth = __proxy_callback(err)
 
-            if  "reconnection_count" not in kwargs:
+            if "reconnection_count" not in kwargs:
                 kwargs["reconnection_count"] = 1
             else:
                 kwargs["reconnection_count"] += 1
 
             if kwargs["reconnection_count"] > RECONNECTION:
-                raise CannotConnectApi(f"超出重连次数 {RECONNECTION} 无法请求到 {args[0]} err: {err}")
+                raise CannotConnectApi(
+                    f"超出重连次数 {RECONNECTION} 无法请求到 {args[0]} err: {err}")
 
             return await wrapper(*args, **kwargs)
 
@@ -87,9 +90,9 @@ def reconnection(func):
 
 @reconnection
 async def _post_url(
-    url: str, 
-    data: Optional[dict[str, Any]] = None, 
-    reconnection_count: Optional[int] = None, 
+    url: str,
+    data: Optional[dict[str, Any]] = None,
+    reconnection_count: Optional[int] = None,
 ) -> dict[str, Any]:
     from pycloudmusic import TIMEOUT
 
@@ -98,13 +101,13 @@ async def _post_url(
     global __proxy_auth
 
     session = await _get_session()
-    
+
     async with session.post(url, headers=__headers, data=data, proxy=__proxy, proxy_auth=__proxy_auth, timeout=TIMEOUT) as req:
         return await req.json(content_type=None)
 
 
 async def _post(
-    path: str, 
+    path: str,
     data: Optional[dict[str, Any]] = None
 ) -> dict[str, Any]:
     """post 请求 api 路径"""
@@ -118,9 +121,9 @@ async def _post(
 
 @reconnection
 async def _download(
-    url: str, 
-    file_name: str, 
-    file_path: Optional[str] = None, 
+    url: str,
+    file_name: str,
+    file_path: Optional[str] = None,
 ) -> str:
     """下载文件"""
     from pycloudmusic import CHUNK_SIZE
@@ -130,7 +133,7 @@ async def _download(
     if file_path is None:
         from pycloudmusic import DOWNLOAD_PATH
         file_path = DOWNLOAD_PATH
-    
+
     if not os.path.isdir(file_path):
         os.makedirs(file_path)
 
@@ -142,5 +145,5 @@ async def _download(
         async with aiofiles.open(file_path_, "wb") as file_:
             async for chunk in req.content.iter_chunked(CHUNK_SIZE):
                 await file_.write(chunk)
-            
+
         return file_path_

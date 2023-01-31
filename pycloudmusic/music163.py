@@ -12,8 +12,8 @@ from pycloudmusic.object.music163 import *
 class Music163Api:
 
     def __init__(
-        self, 
-        cookies: Optional[str] = None, 
+        self,
+        cookies: Optional[str] = None,
     ) -> None:
         if not cookies is None:
             _set_cookie(cookies)
@@ -27,38 +27,38 @@ class Music163Api:
         return My(data)
 
     async def music(
-        self, 
+        self,
         ids: Union[int, str, list[Union[str, int]]]
     ) -> Union[Music, Generator[Music, None, None]]:
         """获取歌曲并实例化music对像"""
         data = await _post("/api/v3/song/detail", {
             "c": _id_format(ids, dict_str=True)
         })
-        
+
         if len(data["songs"]) == 1:
             return Music(data["songs"][0])
 
         return (Music(music_data) for music_data in data["songs"])
 
     async def user(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> User:
         """获取用户并实例化user对像"""
         return User(await _post(f"/api/v1/user/detail/{id_}"))
 
     async def playlist(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> PlayList:
         """获取歌单并实例化playlist对像"""
         return PlayList((await _post("/api/v6/playlist/detail", {
-            "id": id_, 
+            "id": id_,
             "n": 100000
         }))['playlist'])
 
     async def artist(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> Artist:
         """获取歌手并实例化artist对像"""
@@ -67,14 +67,14 @@ class Music163Api:
         }))["data"]['artist'])
 
     async def album(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> Album:
         """实例化专辑album对像"""
         return Album(await _post(f"/api/v1/album/{id_}"))
 
     async def mv(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> Mv:
         """获取mv并实例化mv对像"""
@@ -83,7 +83,7 @@ class Music163Api:
         }))
 
     async def dj(
-        self, 
+        self,
         id_: Union[int, str]
     ) -> Dj:
         """获取电台并实例化dj对像"""
@@ -92,10 +92,10 @@ class Music163Api:
         }))
 
     async def _search(
-        self, 
-        key: str, 
-        type_: Union[str, int] = 1, 
-        page: int = 0, 
+        self,
+        key: str,
+        type_: Union[str, int] = 1,
+        page: int = 0,
         limit: int = 30
     ) -> dict[str, Any]:
         """
@@ -104,27 +104,27 @@ class Music163Api:
         1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频
         """
         return await _post("/api/cloudsearch/pc", {
-            "s": key, 
-            "type": type_, 
-            "limit": limit, 
-            "offset": limit * page, 
+            "s": key,
+            "type": type_,
+            "limit": limit,
+            "offset": limit * page,
             "total": True
         })
-    
+
     async def search_music(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[Music, None, None]]:
         """搜索单曲"""
         data = await self._search(key, "1", page, limit)
         return data["result"]["songCount"], (Music(music_data) for music_data in data["result"]['songs'])
-    
+
     async def search_playlist(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[ShorterPlayList, None, None]]:
         """搜索歌单"""
@@ -132,9 +132,9 @@ class Music163Api:
         return data["result"]["playlistCount"], (ShorterPlayList(playlist_data) for playlist_data in data["result"]['playlists'])
 
     async def search_album(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[ShortAlbum, None, None]]:
         """搜索专辑"""
@@ -142,9 +142,9 @@ class Music163Api:
         return data["result"]["albumCount"], (ShortAlbum(album_data) for album_data in data["result"]['albums'])
 
     async def search_artist(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[ShortArtist, None, None]]:
         """搜索歌手"""
@@ -152,9 +152,9 @@ class Music163Api:
         return data["result"]["artistCount"], (ShortArtist(artist_data) for artist_data in data["result"]['artists'])
 
     async def search_user(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[User, None, None]]:
         """搜索用户"""
@@ -162,9 +162,9 @@ class Music163Api:
         return data["result"]["userprofileCount"], (User(user_data) for user_data in data["result"]['userprofiles'])
 
     async def search_mv(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[Mv, None, None]]:
         """搜索 Mv"""
@@ -172,9 +172,9 @@ class Music163Api:
         return data["result"]["mvCount"], (Mv(music_data) for music_data in data["result"]['mvs'])
 
     async def search_dj(
-        self, 
-        key: str, 
-        page: int = 0, 
+        self,
+        key: str,
+        page: int = 0,
         limit: int = 30
     ) -> tuple[int, Generator[Dj, None, None]]:
         """搜索电台"""
@@ -182,61 +182,61 @@ class Music163Api:
         return data["result"]["djRadiosCount"], (Dj(data) for data in data["result"]["djRadios"])
 
     async def personalized_playlist(
-        self, 
+        self,
         limit: int = 30
     ) -> Generator[ShorterPlayList, None, None]:
         """推荐歌单"""
         return (ShorterPlayList(playlist_data) for playlist_data in (await _post("/api/personalized/playlist", {
-            "limit": limit, 
-            "total": "true", 
+            "limit": limit,
+            "total": "true",
             "n": 1000,
         }))['result'])
-    
+
     async def personalized_new_song(
-        self, 
+        self,
         limit: int = 10
     ) -> Generator[PersonalizedMusic, None, None]:
         """推荐新歌"""
         return (PersonalizedMusic(music_data["song"]) for music_data in (await _post("/api/personalized/newsong", {
-            "type": 'recommend', 
-            "limit": limit, 
+            "type": 'recommend',
+            "limit": limit,
             "areaId": 0,
         }))['result'])
-    
+
     async def personalized_dj(self) -> Generator[PersonalizedDj, None, None]:
         """推荐电台"""
         return (PersonalizedDj(music_data["program"]) for music_data in (
             await _post("/api/personalized/djprogram")
         )['result'])
-    
+
     async def home_page(
-        self, 
-        refresh: bool = True, 
+        self,
+        refresh: bool = True,
         cursor: Optional[str] = None
     ) -> dict[str, Any]:
         """首页-发现 app 主页信息"""
         return await _post("/api/homepage/block/page", {
-            "refresh": refresh, 
+            "refresh": refresh,
             "cursor": cursor
         })
 
     async def top_artist_list(
-        self, 
-        type_: Union[str, int] = 1, 
-        page: int = 0, 
+        self,
+        type_: Union[str, int] = 1,
+        page: int = 0,
         limit: int = 100
     ) -> Generator[Artist, None, None]:
         """歌手榜
         type_ 1: 华语, 2: 欧美, 3: 韩国, 4: 日本"""
         return (Artist(artist_data) for artist_data in (await _post("/api/toplist/artist", {
-            "type": type_, 
-            "limit": limit, 
-            "offset": page * limit, 
+            "type": type_,
+            "limit": limit,
+            "offset": page * limit,
             "total": "true"
         }))["list"]["artists"])
 
     async def top_song(
-        self, 
+        self,
         type_: int = 0
     ) -> Generator[PersonalizedMusic, None, None]:
         """新歌速递
@@ -252,33 +252,34 @@ class Music163Api:
 class LoginMusic163(Api):
 
     def __init__(
-        self, 
+        self,
     ) -> None:
         # md5对象
         self.__hl = hashlib.md5()
 
     def _md5(
-        self, 
+        self,
         str_: str
     ) -> str:
         self.__hl.update(str_.encode(encoding='utf-8'))
         return self.__hl.hexdigest()
-    
+
     def _SimpleCookieToCookieStr(
-        self, 
+        self,
         cookie: SimpleCookie[str]
     ) -> str:
         cookie_str = ""
         for item in dict(cookie).values():
-            cookie_data = str(item).lstrip("Set-Cookie: ").split("; ", maxsplit=1)[0]
+            cookie_data = str(item).lstrip(
+                "Set-Cookie: ").split("; ", maxsplit=1)[0]
             cookie_str = f"{cookie_str}{cookie_data}; "
-        
+
         return cookie_str
 
     async def _login(
-        self, 
-        url: str, 
-        data: dict[str, Any], 
+        self,
+        url: str,
+        data: dict[str, Any],
         reconnection_count: int = 0
     ) -> str:
         try:
@@ -290,15 +291,16 @@ class LoginMusic163(Api):
 
                 return self._SimpleCookieToCookieStr(req.cookies)
         except Exception or not Music163BadCode as err:
-            reconnection_count =+ 1
+            reconnection_count += 1
             if reconnection_count > RECONNECTION:
-                raise CannotConnectApi(f"超出重连次数 {RECONNECTION} 无法请求到 {url} err: {err}")
+                raise CannotConnectApi(
+                    f"超出重连次数 {RECONNECTION} 无法请求到 {url} err: {err}")
 
             return await self._login(url, data, reconnection_count)
-    
+
     async def email(
-        self, 
-        email: str, 
+        self,
+        email: str,
         password: str
     ) -> tuple[str, Music163Api]:
         """
@@ -314,8 +316,8 @@ class LoginMusic163(Api):
         return cookies, Music163Api(cookies)
 
     async def send_captcha(
-        self, 
-        phone: Union[str, int], 
+        self,
+        phone: Union[str, int],
         country_code: Union[str, int] = "86"
     ) -> dict[str, Any]:
         """
@@ -327,10 +329,10 @@ class LoginMusic163(Api):
         })
 
     async def cellphone(
-        self, 
-        phone: Union[str, int], 
-        password: Union[str, int], 
-        captcha: bool = False, 
+        self,
+        phone: Union[str, int],
+        password: Union[str, int],
+        captcha: bool = False,
         country_code: Union[str, int] = "86"
     ) -> tuple[str, Music163Api]:
         """
@@ -359,7 +361,7 @@ class LoginMusic163(Api):
         return data["unikey"], "https://music.163.com/login?codekey=%s" % data["unikey"]
 
     async def qr_check(
-        self, 
+        self,
         qr_key: str
     ) -> str:
         """
@@ -372,8 +374,8 @@ class LoginMusic163(Api):
         })
 
     async def qr(
-        self, 
-        qr_key: str, 
+        self,
+        qr_key: str,
         time_sleep: int = 3
     ) -> tuple[str, Music163Api]:
         """
@@ -392,9 +394,9 @@ class LoginMusic163(Api):
 
                 if err.code == 800:
                     return cookie, Music163Api(cookie)
-            
+
             await asyncio.sleep(time_sleep)
-    
+
     async def logout(self) -> dict[str, Any]:
         """
         退出登录

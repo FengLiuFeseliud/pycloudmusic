@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Union, Generator
+from typing import Any, Union, Generator
+
 import json
 
 
@@ -30,14 +31,14 @@ class DataObject(Api, metaclass=ABCMeta):
     """所有 DataObject 必须可以收藏/查询相似"""
 
     def __init__(
-        self, 
+        self,
         data: dict[str, Any]
     ) -> None:
         super().__init__(data)
-    
+
     @abstractmethod
     async def subscribe(
-        self, 
+        self,
         in_: bool = True
     ) -> dict[str, Any]:
         """对像 收藏/取消收藏"""
@@ -56,7 +57,8 @@ class ListObject(metaclass=ABCMeta):
         self.music_list: list = []
 
     def __iter__(self):
-        self._data_len_ = len(self.music_list) if self.music_list is not None else 0
+        self._data_len_ = len(
+            self.music_list) if self.music_list is not None else 0
         self._index = 0
         return self
 
@@ -75,7 +77,7 @@ class DataListObject(DataObject, ListObject, metaclass=ABCMeta):
     并且有数据可以迭代生成对象"""
 
     def __init__(
-        self, 
+        self,
         data: dict[str, Any]
     ) -> None:
         super().__init__(data)
@@ -89,14 +91,14 @@ class CommentItemObject(Api):
     """基本单评论"""
 
     def __init__(
-        self, 
+        self,
         comment_data: dict[str, Any]
     ) -> None:
         super().__init__(comment_data)
-    
+
     @abstractmethod
     async def floors(
-        self, 
+        self,
         page: int = 0,
         limit: int = 20
     ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
@@ -105,7 +107,7 @@ class CommentItemObject(Api):
 
     @abstractmethod
     async def reply(
-        self, 
+        self,
         content: str
     ) -> dict[str, Any]:
         """回复评论"""
@@ -113,7 +115,7 @@ class CommentItemObject(Api):
 
     @abstractmethod
     async def like(
-        self, 
+        self,
         in_: bool = True
     ) -> dict[str, Any]:
         """评论点赞"""
@@ -121,7 +123,7 @@ class CommentItemObject(Api):
 
     @abstractmethod
     async def delete(
-        self, 
+        self,
     ) -> dict[str, Any]:
         """删除评论"""
         pass
@@ -131,16 +133,16 @@ class CommentObject(Api):
     """基本评论功能"""
 
     def __init__(
-        self, 
+        self,
         comment_data: dict[str, Any]
     ) -> None:
         super().__init__(comment_data)
 
     @abstractmethod
     async def comments(
-        self, 
-        hot: bool = True, 
-        page: int = 0, 
+        self,
+        hot: bool = True,
+        page: int = 0,
         limit: int = 20,
         before_time: int = 0
     ) -> Union[tuple[int, Generator["CommentItemObject", None, None]], dict[str, Any]]:
@@ -149,7 +151,7 @@ class CommentObject(Api):
 
     @abstractmethod
     async def comment_send(
-        self, 
+        self,
         content: str
     ) -> dict[str, Any]:
         """发送评论"""

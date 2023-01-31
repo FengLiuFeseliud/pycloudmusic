@@ -3,7 +3,8 @@
 """
 
 
-from pycloudmusic import Music163Api
+from pycloudmusic.music163 import Music163Api
+
 import asyncio
 
 
@@ -15,7 +16,7 @@ async def main():
     # 打印歌曲信息
     print(music)
     print("=" * 50)
-    
+
     # 下载歌曲
     await music.play()
 
