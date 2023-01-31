@@ -1,0 +1,118 @@
+/* 魔改的 docsify dark 主题 */
+    /* 个人网站也是 pink 色的想统一下 */
+
+    :root {
+      --background-color: #0d1117;
+      --font-color-two: pink;
+      --theme-color: #58a6ff;
+    }
+
+    strong {
+      color: #c9d1d9;
+    }
+
+    body {
+      color: #c9d1d9;
+    }
+
+    .markdown-section pre {
+      background-color: #161b22;
+    }
+
+    .markdown-section pre>code {
+      background-color: #161b22;
+    }
+
+    .active {
+      border-left: 5px solid var(--font-color-two);
+      padding-left: 8px;
+    }
+
+    .sidebar {
+      background-color: var(--background-color);
+    }
+
+    .sidebar-toggle {
+      background-color: var(--background-color);
+    }
+
+    body {
+      background-color: var(--background-color);
+    }
+
+    .sidebar ul li.active > a  {
+      color: var(--font-color-two);
+    }
+
+    .github-corner svg {
+      fill: var(--font-color-two);
+    }
+
+    .sidebar-toggle span {
+      background-color: var(--font-color-two);
+    }
+
+    .sidebar > h1 a {
+      font-weight: 700;
+      font-size: 30px;
+    }
+
+    .token.keyword {
+      color: var(--font-color-two);
+    }
+
+    .token.string {
+      color: var(--font-color-two);
+    }
+
+    .token.punctuation{
+      color: #657b83;
+    }
+
+    .token.function {
+      color: var(--font-color-two);
+    }
+
+    .token.number {
+      color: deeppink;
+    }
+
+    .markdown-section pre > code{
+      color: white;
+    }
+
+    .markdown-section pre {
+      color: var(--font-color-two);
+    }
+
+    pre::after{
+      color: var(--font-color-two);
+    }
+
+    section.cover .cover-main > p:last-child a {
+      border-color: var(--font-color-two);
+    }
+
+    section.cover .cover-main > p:last-child a:last-child {
+      background-color: var(--font-color-two);
+    }
+
+    #pycqbot {
+      color: var(--font-color-two);
+      font-weight: 700;
+      font-size: 60px;
+    }
+
+    .app-name-link-style {
+      color: var(--font-color-two);
+      font-weight: 700;
+      font-size: 38px;
+    }
+
+    .markdown-section blockquote {
+      border-color: deeppink;
+    }
+
+    input[type=search] {
+      background-color: rgb(0 0 0 / 20%);
+    }
