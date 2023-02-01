@@ -11,7 +11,7 @@
 
 [基于 NeteaseCloudMusicApi 改写](https://github.com/Binaryify/NeteaseCloudMusicApi)
 
-[项目文档 (文档不更新时请清理浏览器缓存): https://docs.sakuratools.top/pycloudmusic/](https://docs.sakuratools.top/pycloudmusic/) | [打不开时候备用: https://github.com/FengLiuFeseliud/pycloudmusic.docs](https://github.com/FengLiuFeseliud/pycloudmusic.docs)
+[项目文档 (移动至 Github Pages): https://fengliufeseliud.github.io/pycloudmusic](https://fengliufeseliud.github.io/pycloudmusic)
 
 # 快速入门
 
