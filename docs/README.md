@@ -37,7 +37,7 @@ asyncio.run(main())
 
 此处数据为打印歌单对象
 
-![printobj.png](/pycloudmusic/img/printobj.png)
+![printobj.png](/img/printobj.png)
 
 ## 可迭代对象
 
