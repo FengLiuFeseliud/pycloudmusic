@@ -52,10 +52,27 @@ class Music163Api:
         id_: Union[int, str]
     ) -> PlayList:
         """获取歌单并实例化playlist对像"""
-        return PlayList((await _post("/api/v6/playlist/detail", {
+        playlist_data = (await _post("/api/v6/playlist/detail", {
             "id": id_,
             "n": 100000
-        }))['playlist'])
+        }))['playlist']
+
+        trackIds = [song.get("id") for song in playlist_data["trackIds"]][1000:]  # trackIds永远返回所有歌曲(超过1000首)
+
+        # 如果没有超过1000首
+        if not trackIds:
+            return PlayList(playlist_data)
+
+        # 超过1000首的歌曲就需要用获取到的id通过Music163Api.music重新获取，同样一次只能最多获取1000首
+        # 再把新获取到的music放到playlist_data的track里
+        for i in range(0, len(trackIds), 1000):
+            music_list = list(await self.music(ids=trackIds[i: i + 1000]))
+            music_list = [music.music_data for music in music_list]
+
+            playlist_data["tracks"] += music_list
+
+        return PlayList(playlist_data)
+
 
     async def artist(
         self,
