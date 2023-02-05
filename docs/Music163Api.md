@@ -73,7 +73,6 @@
 
 **`async def search_music(self, key: str, page: int = 0, limit: int = 30) -> tuple[int,Generator[Music, None, None]]:`**
 
-
 > `key`: 搜索内容
 >
 > `page`: 页
@@ -85,7 +84,6 @@
 搜索歌曲，返回一个元组 (tuple) 包含所有的匹配数，一个 [ShortPlaylist 对像](/pycloudmusic/ShortObject?id=class-shortplaylist)生成器(Generator)
 
 **`async def search_playlist(self, key: str, page: int = 0, limit: int = 30) -> tuple[int,Generator[ShortPlaylist, None, None]]:`**
-
 
 > `key`: 搜索内容
 >
