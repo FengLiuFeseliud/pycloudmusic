@@ -1,6 +1,6 @@
-# `class` Uesr
+# `class` User
 
-用户 (Uesr) 支持调用与该用户相关的 Api
+用户 (User) 支持调用与该用户相关的 Api
 
 ## 类实例变量
 
@@ -33,7 +33,7 @@ class User(Api):
 
 ## 类实例方法
 
-### Uesr.playlist
+### User.playlist
 
 **`async def playlist(self, page: int = 0, limit: int = 30) -> Generator[PlayList, None, None]:`**
 
@@ -43,13 +43,13 @@ class User(Api):
 >
 > `limit`: 一页的数据量
 
-### Uesr.like_music
+### User.like_music
 
 **`async def like_music(self) -> PlayList:`**
 
 获取该对象喜欢的歌曲， 返回一个 [PlayList 对像](/pycloudmusic/PlayList)
 
-### Uesr.record
+### User.record
 
 **`async def record(self, type_: bool = True) -> Generator[Music, None, None]:`**
 
@@ -57,7 +57,7 @@ class User(Api):
 
 > `type_`: True 所有时间 / False 最近一周
 
-### Uesr.follow
+### User.follow
 
 **`async def follow(self, follow_in: bool=True) -> dict[str, Any]:`**
 
