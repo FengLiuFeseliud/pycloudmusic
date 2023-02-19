@@ -24,9 +24,9 @@ import asyncio
 async def main():
     login = LoginMusic163()
     # 邮箱登录
-    code, cookie, musicapi = await login.email("you login email", "you login password")
+    cookie, musicapi = await login.email("you login email", "you login password")
     # 验证登录
-    print(code, cookie, musicapi)
+    print(cookie, musicapi)
     print("=" * 60)
     print(await musicapi.my())
 
@@ -71,13 +71,13 @@ async def main():
     phone = input("you login phone: ")
     # 发送验证码
     print(await login.send_captcha(phone))
-    code, cookie, musicapi = await login.cellphone(
+    cookie, musicapi = await login.cellphone(
         phone,
         input("you captcha code: "),
         captcha=True
     )
     # 验证登录
-    print(code, cookie, musicapi)
+    print(cookie, musicapi)
     print("=" * 60)
     print(await musicapi.my())
 
@@ -125,9 +125,9 @@ async def main():
     # 去 https://cli.im/ 生成二维码或者自己生成二维码
     print(f"请使用该 url 生成二维码: {qr_key[1]}")
     # 等待扫码
-    code, cookie, musicapi = await login.qr(qr_key[0])
+    cookie, musicapi = await login.qr(qr_key[0])
     # 验证登录
-    print(code, cookie, musicapi)
+    print(cookie, musicapi)
     print("=" * 60)
     print(await musicapi.my())
 

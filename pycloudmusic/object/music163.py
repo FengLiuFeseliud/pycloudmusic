@@ -322,6 +322,8 @@ class Music(_Music):
         # 歌曲时长
         self.duration_ms = music_data["dt"]
         self.duration = self.duration_ms / 1000
+        # 音乐数据
+        self.music_data = music_data
 
 
 class PersonalizedMusic(_Music):
