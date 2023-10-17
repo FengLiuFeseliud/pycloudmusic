@@ -3,7 +3,7 @@ import asyncio
 from http.cookies import SimpleCookie
 from typing import Any, Generator, Optional, Union
 from pycloudmusic import RECONNECTION, _id_format
-from pycloudmusic.ahttp import _get_headers, _get_session, _post, _set_cookie
+from pycloudmusic.ahttp import _get_headers, _get_session, _set_real_ip, _post, _set_cookie
 from pycloudmusic.error import CannotConnectApi, Music163BadCode, Music163BadData
 from pycloudmusic.baseclass import Api
 from pycloudmusic.object.music163 import *
@@ -17,6 +17,10 @@ class Music163Api:
     ) -> None:
         if not cookies is None:
             _set_cookie(cookies)
+
+    def set_real_ip(self, real_ip: str) -> None:
+        """设置X-Real-IP和X-Forwarded-For"""
+        _set_real_ip(real_ip)
 
     async def my(self) -> My:
         """获取当前cookie用户信息并实例化my对像, cookie无效返回200"""
@@ -413,6 +417,18 @@ class LoginMusic163(Api):
                     return cookie, Music163Api(cookie)
 
             await asyncio.sleep(time_sleep)
+
+    async def login_status(self) -> dict[str, Any]:
+        """
+        查看登录状态
+        """
+        return await _post("/api/w/nuser/account/get")
+
+    async def login_refresh(self) -> dict[str, Any]:
+        """
+        刷新登录
+        """
+        return await _post("/api/login/token/refresh")
 
     async def logout(self) -> dict[str, Any]:
         """

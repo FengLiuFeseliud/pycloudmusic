@@ -18,6 +18,11 @@ def _set_cookie(cookie: str):
     global __headers
     __headers["cookie"] = f"appver=2.7.1.198277; os=pc; {cookie}"
 
+def _set_real_ip(real_ip: str):
+    global __headers
+    __headers["X-Real-IP"] = real_ip
+    __headers["X-Forwarded-For"] = real_ip
+
 
 def _get_headers():
     global __headers
