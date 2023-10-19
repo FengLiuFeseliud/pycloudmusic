@@ -4,6 +4,11 @@
 
 ## 类实例方法
 
+### Music163Api.set_real_ip
+**`def set_real_ip(self, real_ip: str) -> None:`**
+
+设置请求头中`real_ip`参数，可传入国内IP绕过非大陆地区地域限制
+
 ### Music163Api.my
 
 **`async def my(self) -> Union[My, dict[str, Any]]:`**

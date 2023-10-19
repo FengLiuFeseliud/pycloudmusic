@@ -133,3 +133,21 @@ async def main():
 
 asyncio.run(main())
 ```
+
+### LoginMusic163.login_status
+
+查看当前登录状态
+
+**`async def login_status(self) -> dict[str, Any]:`**
+
+### LoginMusic163.login_refresh
+
+刷新登录token
+
+**`async def login_refresh(self) -> dict[str, Any]:`**
+
+### LoginMusic163.logout
+
+退出登录
+
+**`async def logout(self) -> dict[str, Any]:`**
