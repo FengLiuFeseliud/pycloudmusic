@@ -233,7 +233,7 @@ class _Music(DataObject, Music163Comment):
             br: Union[int, str] = 999000
     ) -> dict[str, Any]:
         """获取播放该 music 对象指定的歌曲文件 url"""
-        return await _post_url(path="https://interface3.music.163.com/api/song/enhance/player/url",
+        return await _post_url(url="https://interface3.music.163.com/api/song/enhance/player/url",
                                cookie=self.cookie,
                                data={
                                    "ids": f'[{self.id}]',
