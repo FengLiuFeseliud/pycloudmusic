@@ -14,10 +14,6 @@ __proxy_callback: Optional[Callable[[Exception],
 __basic_headers = BASIC_MUSIC_HEADERS
 
 
-# def _set_cookie(cookie: str):
-#     global __headers
-#     __headers["cookie"] = f"appver=2.7.1.198277; os=pc; {cookie}"
-
 def _set_real_ip(real_ip: str):
     global __headers
     __basic_headers["X-Real-IP"] = real_ip
