@@ -96,7 +96,7 @@ def reconnection(func):
 @reconnection
 async def _post_url(
     url: str,
-    cookie: Optional[str, Any] = None,
+    cookie: Optional[str] = None,
     data: Optional[dict[str, Any]] = None,
     reconnection_count: Optional[int] = None
 ) -> dict[str, Any]:
@@ -119,7 +119,7 @@ async def _post_url(
 
 async def _post(
     path: str,
-    cookie: Optional[str, Any] = None,
+    cookie: Optional[str] = None,
     data: Optional[dict[str, Any]] = None
 ) -> dict[str, Any]:
     """post 请求 api 路径"""
