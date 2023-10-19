@@ -6,7 +6,7 @@ CommentObject 规定了数据类 (DataObject/DataListObject)评论操作的几�
 
 ### CommentObject.comments
 
-**`sync def comments(self, hot: bool = True, page: int = 0, limit: int = 20,before_time: int = 0) -> tuple[int, Generator[CommentItemObject, None, None]]:`**
+**`async def comments(self, hot: bool = True, page: int = 0, limit: int = 20,before_time: int = 0) -> tuple[int, Generator[CommentItemObject, None, None]]:`**
 
 该对象的评论，返回一个元组 (tuple) 包含所有的评论数，一个 [CommentItemObject 对像](/pycloudmusic/CommentObject?id=class-commentitemobject)生成器(Generator)
 
