@@ -37,7 +37,7 @@ class Music163CommentItem(CommentItemObject):
     def __init__(
             self,
             comment_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(comment_data)
         # cookie
@@ -109,7 +109,7 @@ class Music163Comment(CommentObject):
     def __init__(
             self,
             data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(data)
         self.cookie = cookie
@@ -156,7 +156,7 @@ class _Music(DataObject, Music163Comment):
     def __init__(
             self,
             music_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(music_data)
         self.cookie = cookie
@@ -294,7 +294,7 @@ class Music(_Music):
     def __init__(
             self,
             music_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(music_data)
         # cookie
@@ -346,7 +346,7 @@ class PersonalizedMusic(_Music):
     def __init__(
             self,
             music_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(music_data)
         # cookie
@@ -385,7 +385,7 @@ class _PlayList(DataListObject, Music163Comment):
     def __init__(
             self,
             playlist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(playlist_data)
         self.cookie = cookie
@@ -429,7 +429,7 @@ class PlayList(_PlayList):
     def __init__(
             self,
             playlist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(playlist_data)
         # cookie
@@ -495,7 +495,7 @@ class ShortPlayList(_PlayList):
     def __init__(
             self,
             playlist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(playlist_data)
         # cookie
@@ -529,7 +529,7 @@ class ShorterPlayList(_PlayList):
     def __init__(
             self,
             playlist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(playlist_data)
         # cookie
@@ -556,7 +556,7 @@ class User(Api):
     def __init__(
             self,
             user_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         _user_data = user_data["profile"] if "profile" in user_data else user_data
         # cookie
@@ -631,7 +631,7 @@ class _Album(DataListObject, Music163Comment):
     def __init__(
             self,
             album_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(album_data)
         self.cookie = cookie
@@ -659,7 +659,7 @@ class Album(_Album):
     def __init__(
             self,
             album_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(album_data)
         # cookie
@@ -701,7 +701,7 @@ class ShortAlbum(_Album):
     def __init__(
             self,
             album_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(album_data)
         # cookie
@@ -734,7 +734,7 @@ class _Mv(DataObject, Music163Comment):
     def __init__(
             self,
             mv_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(mv_data)
         self.cookie = cookie
@@ -778,7 +778,7 @@ class Mv(_Mv):
     def __init__(
             self,
             mv_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(mv_data)
         mv_data = mv_data["data"]
@@ -818,7 +818,7 @@ class ShortMv(_Mv):
     def __init__(
             self,
             mv_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(mv_data)
         # cookie
@@ -840,7 +840,7 @@ class _Artist(DataObject):
     def __init__(
             self,
             artist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(artist_data)
         self.cookie = cookie
@@ -906,7 +906,7 @@ class Artist(_Artist):
     def __init__(
             self,
             artist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(artist_data)
         # cookie
@@ -933,7 +933,7 @@ class ShortArtist(_Artist):
     def __init__(
             self,
             artist_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(artist_data)
         # cookie
@@ -958,7 +958,7 @@ class DjMusic(Music163Comment):
     def __init__(
             self,
             dj_music_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         # cookie
         self.cookie = cookie
@@ -986,7 +986,7 @@ class _Dj(DataListObject):
     def __init__(
             self,
             dj_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(dj_data)
         self.cookie = cookie
@@ -1027,7 +1027,7 @@ class Dj(_Dj):
     def __init__(
             self,
             dj_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(dj_data)
         # cookie
@@ -1075,7 +1075,7 @@ class ShortDj(_Dj):
     def __init__(
             self,
             dj_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(dj_data)
         # cookie
@@ -1117,7 +1117,7 @@ class PersonalizedDj(_Dj):
     def __init__(
             self,
             dj_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(dj_data)
         # cookie
@@ -1142,7 +1142,7 @@ class Fm(Api, ListObject):
     def __init__(
             self,
             fm_data: dict[str, Any] = {},
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(fm_data)
         self.cookie = cookie
@@ -1174,7 +1174,7 @@ class Message(Api):
     def __init__(
             self,
             user_id: Union[str, int],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         self.cookie = cookie
         self.id = user_id
@@ -1314,7 +1314,7 @@ class EventItem(Music163Comment):
     def __init__(
             self,
             event_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         self.data_type = DATA_TYPE[6]
         # cookie
@@ -1361,7 +1361,7 @@ class Event(Api, ListObject):
     def __init__(
             self,
             even_data: dict[str, Any] = {},
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(even_data)
         self.cookie = cookie
@@ -1486,7 +1486,7 @@ class CloudMusic(Api):
     def __init__(
             self,
             cloud_music_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         # cookie
         self.cookie = cookie
@@ -1513,7 +1513,7 @@ class Cloud(Api, ListObject):
     def __init__(
             self,
             cloud_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         # cookie
         self.cookie = cookie
@@ -1535,7 +1535,7 @@ class My(User):
     def __init__(
             self,
             user_data: dict[str, Any],
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         super().__init__(user_data)
         # cookie

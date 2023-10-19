@@ -286,7 +286,7 @@ class LoginMusic163(Api):
 
     def __init__(
             self,
-            cookie: Optional[str, Any] = None
+            cookie: Optional[str] = None
     ) -> None:
         # cookie, 登录前None
         self.cookie = cookie
