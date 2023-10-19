@@ -2,7 +2,7 @@ import os
 from typing import Any, Callable, Optional
 import aiofiles
 import aiohttp
-from pycloudmusic import MUSIC_HEADERS
+from pycloudmusic import BASIC_MUSIC_HEADERS
 from pycloudmusic.error import CannotConnectApi, Music163BadCode
 
 
@@ -11,22 +11,22 @@ __proxy = None
 __proxy_auth = None
 __proxy_callback: Optional[Callable[[Exception],
                                     tuple[str, Optional[aiohttp.BasicAuth]]]] = None
-__headers = MUSIC_HEADERS
+__basic_headers = BASIC_MUSIC_HEADERS
 
 
-def _set_cookie(cookie: str):
-    global __headers
-    __headers["cookie"] = f"appver=2.7.1.198277; os=pc; {cookie}"
+# def _set_cookie(cookie: str):
+#     global __headers
+#     __headers["cookie"] = f"appver=2.7.1.198277; os=pc; {cookie}"
 
 def _set_real_ip(real_ip: str):
     global __headers
-    __headers["X-Real-IP"] = real_ip
-    __headers["X-Forwarded-For"] = real_ip
+    __basic_headers["X-Real-IP"] = real_ip
+    __basic_headers["X-Forwarded-For"] = real_ip
 
 
-def _get_headers():
-    global __headers
-    return __headers
+def _get_basic_headers():
+    global __basic_headers
+    return __basic_headers
 
 
 async def _get_session():
@@ -96,8 +96,9 @@ def reconnection(func):
 @reconnection
 async def _post_url(
     url: str,
+    cookie: Optional[str, Any] = None,
     data: Optional[dict[str, Any]] = None,
-    reconnection_count: Optional[int] = None,
+    reconnection_count: Optional[int] = None
 ) -> dict[str, Any]:
     from pycloudmusic import TIMEOUT
 
@@ -107,16 +108,22 @@ async def _post_url(
 
     session = await _get_session()
 
-    async with session.post(url, headers=__headers, data=data, proxy=__proxy, proxy_auth=__proxy_auth, timeout=TIMEOUT) as req:
+    """如果存在, 则添加cookie，不更改原__basic_headers"""
+    headers = dict(__basic_headers)
+    if cookie:
+        headers["cookie"] = f"appver=2.7.1.198277; os=pc; {cookie}"
+
+    async with session.post(url, headers=headers, data=data, proxy=__proxy, proxy_auth=__proxy_auth, timeout=TIMEOUT) as req:
         return await req.json(content_type=None)
 
 
 async def _post(
     path: str,
+    cookie: Optional[str, Any] = None,
     data: Optional[dict[str, Any]] = None
 ) -> dict[str, Any]:
     """post 请求 api 路径"""
-    post_data = await _post_url(f"https://music.163.com{path}", data)
+    post_data = await _post_url(url=f"https://music.163.com{path}", cookie=cookie, data=data)
 
     if post_data["code"] != 200:
         raise Music163BadCode(post_data)

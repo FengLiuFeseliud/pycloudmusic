@@ -14,8 +14,8 @@ RECONNECTION: int = 3
 TIMEOUT: int = 30
 # 不输出 NOT_PRINT_OBJECT_DICT 中指定的列表详细
 NOT_PRINT_OBJECT_DICT: list[str] = ["music_list"]
-# music163 通用请求头
-MUSIC_HEADERS: dict[str, str] = {
+# music163 通用请求头（musicapi的cookie不会更改这个这个header本身，以便支持多musicapi与不同的cookies)
+BASIC_MUSIC_HEADERS: dict[str, str] = {
     'Accept': '*/*',
     'Accept-Language': 'zh-CN,zh;q=0.8,gl;q=0.6,zh-TW;q=0.4',
     'Connection': 'keep-alive',
